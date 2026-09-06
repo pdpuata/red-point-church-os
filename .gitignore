@@ -12,3 +12,4 @@ ios/
 *.p12
 *.key
 .supabase.production.env
+supabase/.temp/
