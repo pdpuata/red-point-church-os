@@ -1,0 +1,3 @@
+-- V4.9 Contact & Connection
+-- This release uses existing church/site information and adds no required database fields.
+-- No migration is required for the public contact hub.

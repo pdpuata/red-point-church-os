@@ -1,0 +1,2 @@
+-- v9 parity marker. Production DDL was applied through the Supabase migration API.
+-- See OS_V9.0.0_CHANGELOG.md for the contract and safety boundary.

@@ -1,0 +1,3 @@
+-- Production migration: fix_roster_planner_reasons_and_contract
+-- The canonical database migration was applied through Supabase. This file is retained as a source artifact.
+-- The planner returns data_gaps and a human_approval_required flag and does not auto-assign people.

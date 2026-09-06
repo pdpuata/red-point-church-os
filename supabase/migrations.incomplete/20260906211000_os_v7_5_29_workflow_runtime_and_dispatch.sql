@@ -1,0 +1,2 @@
+-- v7.5.29 workflow runtime/dispatch was applied to production through the Supabase migration API.
+-- This file records the local release migration contract; production schema is authoritative.

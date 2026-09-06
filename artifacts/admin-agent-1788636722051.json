@@ -1,0 +1,177 @@
+{
+  "protocol": "red-point-admin-agent/v1",
+  "mode": "plan",
+  "started_at": "2026-09-05T19:32:02.051Z",
+  "principle": "Observe -> verify -> diagnose -> propose -> approve -> change -> verify -> record",
+  "safety": "No destructive or consequential mutation is performed by this script.",
+  "surfaces": [
+    {
+      "table": "events",
+      "surface": "Events",
+      "operations": [
+        "read",
+        "create",
+        "edit",
+        "publish",
+        "unpublish",
+        "delete"
+      ]
+    },
+    {
+      "table": "announcements",
+      "surface": "Announcements",
+      "operations": [
+        "read",
+        "create",
+        "edit",
+        "publish",
+        "unpublish",
+        "delete"
+      ]
+    },
+    {
+      "table": "sermons",
+      "surface": "Sermons",
+      "operations": [
+        "read",
+        "create",
+        "edit",
+        "publish",
+        "unpublish",
+        "delete"
+      ]
+    },
+    {
+      "table": "visitor_submissions",
+      "surface": "Visitors",
+      "operations": [
+        "read",
+        "update-status"
+      ]
+    },
+    {
+      "table": "ministries",
+      "surface": "Ministries",
+      "operations": [
+        "read",
+        "create",
+        "edit",
+        "publish",
+        "unpublish",
+        "delete"
+      ]
+    },
+    {
+      "table": "leaders",
+      "surface": "Leaders",
+      "operations": [
+        "read",
+        "create",
+        "edit",
+        "publish",
+        "unpublish",
+        "delete"
+      ]
+    },
+    {
+      "table": "site_settings",
+      "surface": "Home/Contact",
+      "operations": [
+        "read",
+        "upsert"
+      ]
+    },
+    {
+      "table": "notification_history",
+      "surface": "Notifications",
+      "operations": [
+        "read",
+        "insert"
+      ]
+    },
+    {
+      "table": "device_tokens",
+      "surface": "Notifications",
+      "operations": [
+        "read-count"
+      ]
+    },
+    {
+      "table": "admin_qa_runs",
+      "surface": "QA Runs",
+      "operations": [
+        "read",
+        "write"
+      ]
+    },
+    {
+      "table": "admin_qa_results",
+      "surface": "QA Results",
+      "operations": [
+        "read",
+        "write"
+      ]
+    },
+    {
+      "table": "admin_repair_queue",
+      "surface": "Repair Queue",
+      "operations": [
+        "read",
+        "write"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "status": "passed",
+      "test": "artifact_exists",
+      "surface": "system",
+      "detail": "App.tsx",
+      "checked_at": "2026-09-05T19:32:02.051Z"
+    },
+    {
+      "status": "passed",
+      "test": "artifact_exists",
+      "surface": "system",
+      "detail": "supabase/schema.sql",
+      "checked_at": "2026-09-05T19:32:02.051Z"
+    },
+    {
+      "status": "passed",
+      "test": "artifact_exists",
+      "surface": "system",
+      "detail": "supabase/migrations/20260905_admin_ai_operational_loop.sql",
+      "checked_at": "2026-09-05T19:32:02.051Z"
+    },
+    {
+      "status": "passed",
+      "test": "artifact_exists",
+      "surface": "system",
+      "detail": "scripts/admin-agent.mjs",
+      "checked_at": "2026-09-05T19:32:02.051Z"
+    },
+    {
+      "status": "passed",
+      "test": "typecheck_script",
+      "surface": "system",
+      "detail": "npm run typecheck",
+      "checked_at": "2026-09-05T19:32:02.051Z"
+    },
+    {
+      "status": "passed",
+      "test": "release_check_script",
+      "surface": "system",
+      "detail": "npm run release-check",
+      "checked_at": "2026-09-05T19:32:02.051Z"
+    }
+  ],
+  "next_actions": [
+    "Run npm run typecheck.",
+    "Run npm run release-check.",
+    "Run the Admin Database Test from the app.",
+    "Inspect admin_qa_results and admin_repair_queue.",
+    "Only after approval, execute one bounded repair and rerun verification."
+  ],
+  "finished_at": "2026-09-05T19:32:02.051Z",
+  "status": "ready_for_runtime_verification"
+}

@@ -1,0 +1,3 @@
+-- V4.0 is a hardening release. No new tables are required.
+-- Run the complete schema/migrations through V3.9 before deploying V4.0.
+-- This marker documents the production-readiness checkpoint.

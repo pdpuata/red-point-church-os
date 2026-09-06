@@ -1,0 +1,4 @@
+-- v8 production migration is applied through the Supabase migration API.
+-- This local parity marker documents the production version without duplicating
+-- the full DDL in the repository artifact.
+-- Production migration name: os_v8_universal_agent_runtime

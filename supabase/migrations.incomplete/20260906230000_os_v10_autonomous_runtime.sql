@@ -1,0 +1,1 @@
+-- Production parity marker: v10 Autonomous Runtime was applied directly to project gvyqluwtzujefernhvfd via Supabase migration API. See OS_V10.0.0_CHANGELOG.md and V10.md.

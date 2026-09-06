@@ -1,0 +1,462 @@
+{
+  "protocol": "red-point-admin-workflow-verifier/v1",
+  "started_at": "2026-09-06T11:50:31.624Z",
+  "vertical_slice": {
+    "surface": "Events",
+    "lifecycle": "draft → edit → publish → public read → unpublish → public hidden → delete",
+    "status": "locally_verified"
+  },
+  "total_action_count": 26,
+  "passed": 26,
+  "failed": 0,
+  "live_boundaries": {
+    "supabase": "unproven",
+    "device": "unproven",
+    "edge_functions": "unproven"
+  },
+  "actions": [
+    {
+      "surface": "Events",
+      "table": "events",
+      "action": "create",
+      "handler": "saveEvent",
+      "operation": "insert",
+      "policy": "admins manage events",
+      "verify": "read-after-mutation",
+      "status": "passed",
+      "checks": {
+        "handler": true,
+        "table": true,
+        "operation": true,
+        "policy": true
+      },
+      "detail": "source and RLS contract present"
+    },
+    {
+      "surface": "Events",
+      "table": "events",
+      "action": "read",
+      "handler": "refresh",
+      "operation": "select",
+      "policy": "admins manage events",
+      "verify": "read-after-mutation",
+      "status": "passed",
+      "checks": {
+        "handler": true,
+        "table": true,
+        "operation": true,
+        "policy": true
+      },
+      "detail": "source and RLS contract present"
+    },
+    {
+      "surface": "Events",
+      "table": "events",
+      "action": "edit",
+      "handler": "saveEvent",
+      "operation": "update",
+      "policy": "admins manage events",
+      "verify": "read-after-mutation",
+      "status": "passed",
+      "checks": {
+        "handler": true,
+        "table": true,
+        "operation": true,
+        "policy": true
+      },
+      "detail": "source and RLS contract present"
+    },
+    {
+      "surface": "Events",
+      "table": "events",
+      "action": "publish",
+      "handler": "toggleEvent",
+      "operation": "update({published:true})",
+      "policy": "admins manage events",
+      "verify": "public read/RLS visibility",
+      "status": "passed",
+      "checks": {
+        "handler": true,
+        "table": true,
+        "operation": true,
+        "policy": true
+      },
+      "detail": "source and RLS contract present"
+    },
+    {
+      "surface": "Events",
+      "table": "events",
+      "action": "unpublish",
+      "handler": "toggleEvent",
+      "operation": "update({published:false})",
+      "policy": "admins manage events",
+      "verify": "public read/RLS visibility",
+      "status": "passed",
+      "checks": {
+        "handler": true,
+        "table": true,
+        "operation": true,
+        "policy": true
+      },
+      "detail": "source and RLS contract present"
+    },
+    {
+      "surface": "Events",
+      "table": "events",
+      "action": "delete",
+      "handler": "remove",
+      "operation": "delete",
+      "policy": "admins manage events",
+      "verify": "read-after-mutation",
+      "status": "passed",
+      "checks": {
+        "handler": true,
+        "table": true,
+        "operation": true,
+        "policy": true
+      },
+      "detail": "source and RLS contract present"
+    },
+    {
+      "surface": "Announcements",
+      "table": "announcements",
+      "action": "create",
+      "handler": "saveAnnouncement",
+      "operation": "insert",
+      "policy": "admins manage announcements",
+      "verify": "read-after-mutation",
+      "status": "passed",
+      "checks": {
+        "handler": true,
+        "table": true,
+        "operation": true,
+        "policy": true
+      },
+      "detail": "source and RLS contract present"
+    },
+    {
+      "surface": "Announcements",
+      "table": "announcements",
+      "action": "read",
+      "handler": "refresh",
+      "operation": "select",
+      "policy": "admins manage announcements",
+      "verify": "read-after-mutation",
+      "status": "passed",
+      "checks": {
+        "handler": true,
+        "table": true,
+        "operation": true,
+        "policy": true
+      },
+      "detail": "source and RLS contract present"
+    },
+    {
+      "surface": "Announcements",
+      "table": "announcements",
+      "action": "edit",
+      "handler": "saveAnnouncement",
+      "operation": "update",
+      "policy": "admins manage announcements",
+      "verify": "read-after-mutation",
+      "status": "passed",
+      "checks": {
+        "handler": true,
+        "table": true,
+        "operation": true,
+        "policy": true
+      },
+      "detail": "source and RLS contract present"
+    },
+    {
+      "surface": "Announcements",
+      "table": "announcements",
+      "action": "publish",
+      "handler": "toggleAnnouncement",
+      "operation": "update({published:true})",
+      "policy": "admins manage announcements",
+      "verify": "public read/RLS visibility",
+      "status": "passed",
+      "checks": {
+        "handler": true,
+        "table": true,
+        "operation": true,
+        "policy": true
+      },
+      "detail": "source and RLS contract present"
+    },
+    {
+      "surface": "Announcements",
+      "table": "announcements",
+      "action": "unpublish",
+      "handler": "toggleAnnouncement",
+      "operation": "update({published:false})",
+      "policy": "admins manage announcements",
+      "verify": "public read/RLS visibility",
+      "status": "passed",
+      "checks": {
+        "handler": true,
+        "table": true,
+        "operation": true,
+        "policy": true
+      },
+      "detail": "source and RLS contract present"
+    },
+    {
+      "surface": "Announcements",
+      "table": "announcements",
+      "action": "delete",
+      "handler": "remove",
+      "operation": "delete",
+      "policy": "admins manage announcements",
+      "verify": "read-after-mutation",
+      "status": "passed",
+      "checks": {
+        "handler": true,
+        "table": true,
+        "operation": true,
+        "policy": true
+      },
+      "detail": "source and RLS contract present"
+    },
+    {
+      "surface": "Sermons",
+      "table": "sermons",
+      "action": "create",
+      "handler": "saveSermon",
+      "operation": "insert",
+      "policy": "admins manage sermons",
+      "verify": "read-after-mutation",
+      "status": "passed",
+      "checks": {
+        "handler": true,
+        "table": true,
+        "operation": true,
+        "policy": true
+      },
+      "detail": "source and RLS contract present"
+    },
+    {
+      "surface": "Sermons",
+      "table": "sermons",
+      "action": "read",
+      "handler": "refresh",
+      "operation": "select",
+      "policy": "admins manage sermons",
+      "verify": "read-after-mutation",
+      "status": "passed",
+      "checks": {
+        "handler": true,
+        "table": true,
+        "operation": true,
+        "policy": true
+      },
+      "detail": "source and RLS contract present"
+    },
+    {
+      "surface": "Sermons",
+      "table": "sermons",
+      "action": "edit",
+      "handler": "saveSermon",
+      "operation": "update",
+      "policy": "admins manage sermons",
+      "verify": "read-after-mutation",
+      "status": "passed",
+      "checks": {
+        "handler": true,
+        "table": true,
+        "operation": true,
+        "policy": true
+      },
+      "detail": "source and RLS contract present"
+    },
+    {
+      "surface": "Sermons",
+      "table": "sermons",
+      "action": "publish",
+      "handler": "toggleSermon",
+      "operation": "update({published:true})",
+      "policy": "admins manage sermons",
+      "verify": "public read/RLS visibility",
+      "status": "passed",
+      "checks": {
+        "handler": true,
+        "table": true,
+        "operation": true,
+        "policy": true
+      },
+      "detail": "source and RLS contract present"
+    },
+    {
+      "surface": "Sermons",
+      "table": "sermons",
+      "action": "unpublish",
+      "handler": "toggleSermon",
+      "operation": "update({published:false})",
+      "policy": "admins manage sermons",
+      "verify": "public read/RLS visibility",
+      "status": "passed",
+      "checks": {
+        "handler": true,
+        "table": true,
+        "operation": true,
+        "policy": true
+      },
+      "detail": "source and RLS contract present"
+    },
+    {
+      "surface": "Sermons",
+      "table": "sermons",
+      "action": "delete",
+      "handler": "remove",
+      "operation": "delete",
+      "policy": "admins manage sermons",
+      "verify": "read-after-mutation",
+      "status": "passed",
+      "checks": {
+        "handler": true,
+        "table": true,
+        "operation": true,
+        "policy": true
+      },
+      "detail": "source and RLS contract present"
+    },
+    {
+      "surface": "Visitors",
+      "table": "visitor_submissions",
+      "action": "read",
+      "handler": "refresh",
+      "operation": "select",
+      "policy": "admins read visitors",
+      "verify": "read-after-query",
+      "status": "passed",
+      "checks": {
+        "handler": true,
+        "table": true,
+        "operation": true,
+        "policy": true
+      },
+      "detail": "source and RLS contract present"
+    },
+    {
+      "surface": "Visitors",
+      "table": "visitor_submissions",
+      "action": "update-status",
+      "handler": "updateVisitorStatus",
+      "operation": "update",
+      "policy": "admins update visitors",
+      "verify": "read-after-mutation",
+      "status": "passed",
+      "checks": {
+        "handler": true,
+        "table": true,
+        "operation": true,
+        "policy": true
+      },
+      "detail": "source and RLS contract present"
+    },
+    {
+      "surface": "Ministries",
+      "table": "ministries",
+      "action": "create/edit",
+      "handler": "saveMinistry",
+      "operation": "insert/update",
+      "policy": "Admins manage ministries",
+      "verify": "read-after-mutation",
+      "status": "passed",
+      "checks": {
+        "handler": true,
+        "table": true,
+        "operation": true,
+        "policy": true
+      },
+      "detail": "source and RLS contract present"
+    },
+    {
+      "surface": "Ministries",
+      "table": "ministries",
+      "action": "publish/unpublish",
+      "handler": "toggleMinistry",
+      "operation": "update({published})",
+      "policy": "Admins manage ministries",
+      "verify": "public read/RLS visibility",
+      "status": "passed",
+      "checks": {
+        "handler": true,
+        "table": true,
+        "operation": true,
+        "policy": true
+      },
+      "detail": "source and RLS contract present"
+    },
+    {
+      "surface": "Ministries",
+      "table": "ministries",
+      "action": "delete",
+      "handler": "remove",
+      "operation": "delete",
+      "policy": "Admins manage ministries",
+      "verify": "read-after-mutation",
+      "status": "passed",
+      "checks": {
+        "handler": true,
+        "table": true,
+        "operation": true,
+        "policy": true
+      },
+      "detail": "source and RLS contract present"
+    },
+    {
+      "surface": "Leaders",
+      "table": "leaders",
+      "action": "create/edit",
+      "handler": "saveLeader",
+      "operation": "insert/update",
+      "policy": "Admins manage leaders",
+      "verify": "read-after-mutation",
+      "status": "passed",
+      "checks": {
+        "handler": true,
+        "table": true,
+        "operation": true,
+        "policy": true
+      },
+      "detail": "source and RLS contract present"
+    },
+    {
+      "surface": "Leaders",
+      "table": "leaders",
+      "action": "publish/unpublish",
+      "handler": "toggleLeader",
+      "operation": "update({published})",
+      "policy": "Admins manage leaders",
+      "verify": "public read/RLS visibility",
+      "status": "passed",
+      "checks": {
+        "handler": true,
+        "table": true,
+        "operation": true,
+        "policy": true
+      },
+      "detail": "source and RLS contract present"
+    },
+    {
+      "surface": "Leaders",
+      "table": "leaders",
+      "action": "read",
+      "handler": "refresh",
+      "operation": "select",
+      "policy": "Admins manage leaders",
+      "verify": "read-after-query",
+      "status": "passed",
+      "checks": {
+        "handler": true,
+        "table": true,
+        "operation": true,
+        "policy": true
+      },
+      "detail": "source and RLS contract present"
+    }
+  ],
+  "finished_at": "2026-09-06T11:50:31.624Z"
+}

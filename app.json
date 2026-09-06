@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "Red Point Church",
+    "slug": "red-point-church",
+    "version": "14.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "redpointchurch",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.redpointchurch.app"
+    },
+    "android": {
+      "package": "com.redpointchurch.app"
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-notifications",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Red Point Church uses photo access so authorised church staff can add images to church content."
+        }
+      ]
+    ]
+  },
+  "version": "12.0.0"
+}

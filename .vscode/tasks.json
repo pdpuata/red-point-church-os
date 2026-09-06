@@ -1,0 +1,34 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "AI OS: Operational Loop",
+      "type": "shell",
+      "command": "npm run ai:loop",
+      "problemMatcher": [],
+      "runOptions": {
+        "runOn": "folderOpen"
+      }
+    },
+    {
+      "label": "AI OS: Admin Verification",
+      "type": "shell",
+      "command": "npm run verify:admin",
+      "problemMatcher": []
+    },
+    {
+      "label": "AI OS: Typecheck",
+      "type": "shell",
+      "command": "npm run typecheck",
+      "problemMatcher": [
+        "$tsc"
+      ]
+    },
+    {
+      "label": "AI OS: Release Check",
+      "type": "shell",
+      "command": "npm run release-check",
+      "problemMatcher": []
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+-- v7.5.28 source sync/change detection was applied to production through the Supabase migration API.
+-- This file records the local release migration contract; production schema is authoritative.

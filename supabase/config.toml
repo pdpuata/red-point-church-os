@@ -1,0 +1,16 @@
+project_id = "red-point-church"
+
+[functions.register-device]
+verify_jwt = false
+
+[functions.submit-visitor]
+verify_jwt = false
+
+[functions.sermon-rss]
+verify_jwt = false
+
+[functions.send-push]
+verify_jwt = true
+
+[functions.sync-youtube-sermons]
+verify_jwt = true

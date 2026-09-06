@@ -1,0 +1,93 @@
+{
+  "protocol": "red-point-admin-surface-check/v1",
+  "checked_at": "2026-09-05T19:24:48.649Z",
+  "status": "failed",
+  "checks": [
+    {
+      "key": "admin_component",
+      "status": "passed",
+      "detail": "Admin component exists"
+    },
+    {
+      "key": "admin_ai_operations",
+      "status": "passed",
+      "detail": "AI Operations surface exists"
+    },
+    {
+      "key": "admin_snapshot_rpc",
+      "status": "failed",
+      "detail": "Operational snapshot RPC is wired and migrated"
+    },
+    {
+      "key": "qa_runs",
+      "status": "failed",
+      "detail": "QA runs are wired"
+    },
+    {
+      "key": "qa_results",
+      "status": "failed",
+      "detail": "QA results are wired"
+    },
+    {
+      "key": "repair_queue",
+      "status": "failed",
+      "detail": "Repair queue exists"
+    },
+    {
+      "key": "events",
+      "status": "passed",
+      "detail": "Events mode exists"
+    },
+    {
+      "key": "announcements",
+      "status": "passed",
+      "detail": "Announcements mode exists"
+    },
+    {
+      "key": "sermons",
+      "status": "passed",
+      "detail": "Sermons mode exists"
+    },
+    {
+      "key": "visitors",
+      "status": "passed",
+      "detail": "Visitors mode exists"
+    },
+    {
+      "key": "ministries",
+      "status": "passed",
+      "detail": "Ministries mode exists"
+    },
+    {
+      "key": "leaders",
+      "status": "passed",
+      "detail": "Leaders mode exists"
+    },
+    {
+      "key": "home",
+      "status": "passed",
+      "detail": "Home mode exists"
+    },
+    {
+      "key": "contact",
+      "status": "passed",
+      "detail": "Contact mode exists"
+    },
+    {
+      "key": "notify",
+      "status": "passed",
+      "detail": "Notifications mode exists"
+    },
+    {
+      "key": "sunday",
+      "status": "passed",
+      "detail": "Sunday Readiness mode exists"
+    },
+    {
+      "key": "release",
+      "status": "passed",
+      "detail": "Release Check mode exists"
+    }
+  ],
+  "note": "Static contract only; runtime database/device verification remains required."
+}

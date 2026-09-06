@@ -1,0 +1,2 @@
+-- V4.1 QA/UX checkpoint. No schema changes required.
+-- This release focuses on reliability, refresh behavior, accessibility labels, and empty-state correctness.

@@ -1,0 +1,1 @@
+-- Production parity marker. v11 schema was applied to the production Supabase project through the migration API.

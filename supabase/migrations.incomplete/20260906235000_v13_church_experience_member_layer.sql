@@ -1,0 +1,2 @@
+-- v13 production migration was applied to the live Supabase project.
+-- See production migration: v13_church_experience_member_layer

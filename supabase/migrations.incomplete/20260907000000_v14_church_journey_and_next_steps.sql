@@ -1,0 +1,2 @@
+-- v14 production migration applied as v14_church_journey_and_next_steps.
+-- Parity marker: see live migration for church_next_step_requests and request/cancel RPCs.

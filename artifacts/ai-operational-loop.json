@@ -1,0 +1,209 @@
+{
+  "protocol": "red-point-ai-operational-loop/v1",
+  "started_at": "2026-09-06T16:18:52.760Z",
+  "principle": "Observe -> Verify -> Diagnose -> Propose -> Approve -> Change -> Verify -> Record",
+  "safety": "Deterministic repository verification only; no consequential mutations.",
+  "repository": {
+    "package_version": "14.0.0",
+    "dependencies_installed": false
+  },
+  "checks": [
+    {
+      "key": "artifact:.ai/constitution.md",
+      "status": "passed",
+      "severity": "info",
+      "detail": "present",
+      "checked_at": "2026-09-06T16:18:52.750Z"
+    },
+    {
+      "key": "artifact:.ai/architecture.md",
+      "status": "passed",
+      "severity": "info",
+      "detail": "present",
+      "checked_at": "2026-09-06T16:18:52.752Z"
+    },
+    {
+      "key": "artifact:.ai/domain-model.md",
+      "status": "passed",
+      "severity": "info",
+      "detail": "present",
+      "checked_at": "2026-09-06T16:18:52.753Z"
+    },
+    {
+      "key": "artifact:.ai/tests/definition-of-done.md",
+      "status": "passed",
+      "severity": "info",
+      "detail": "present",
+      "checked_at": "2026-09-06T16:18:52.753Z"
+    },
+    {
+      "key": "artifact:.ai/tests/repository-gates.md",
+      "status": "passed",
+      "severity": "info",
+      "detail": "present",
+      "checked_at": "2026-09-06T16:18:52.754Z"
+    },
+    {
+      "key": "artifact:.ai/workflows/ai-operations-loop.md",
+      "status": "passed",
+      "severity": "info",
+      "detail": "present",
+      "checked_at": "2026-09-06T16:18:52.754Z"
+    },
+    {
+      "key": "artifact:AGENTS.md",
+      "status": "passed",
+      "severity": "info",
+      "detail": "present",
+      "checked_at": "2026-09-06T16:18:52.755Z"
+    },
+    {
+      "key": "artifact:.github/copilot-instructions.md",
+      "status": "passed",
+      "severity": "info",
+      "detail": "present",
+      "checked_at": "2026-09-06T16:18:52.755Z"
+    },
+    {
+      "key": "artifact:App.tsx",
+      "status": "passed",
+      "severity": "info",
+      "detail": "present",
+      "checked_at": "2026-09-06T16:18:52.755Z"
+    },
+    {
+      "key": "artifact:package.json",
+      "status": "passed",
+      "severity": "info",
+      "detail": "present",
+      "checked_at": "2026-09-06T16:18:52.756Z"
+    },
+    {
+      "key": "artifact:supabase/migrations/20260905_admin_ai_operational_loop.sql",
+      "status": "passed",
+      "severity": "info",
+      "detail": "present",
+      "checked_at": "2026-09-06T16:18:52.757Z"
+    },
+    {
+      "key": "script:admin-agent",
+      "status": "passed",
+      "severity": "info",
+      "detail": "node scripts/admin-agent.mjs",
+      "checked_at": "2026-09-06T16:18:52.757Z"
+    },
+    {
+      "key": "script:admin-surface-check",
+      "status": "passed",
+      "severity": "info",
+      "detail": "node scripts/admin-surface-check.mjs",
+      "checked_at": "2026-09-06T16:18:52.757Z"
+    },
+    {
+      "key": "script:release-check",
+      "status": "passed",
+      "severity": "info",
+      "detail": "node scripts/release-check.mjs",
+      "checked_at": "2026-09-06T16:18:52.757Z"
+    },
+    {
+      "key": "script:typecheck",
+      "status": "passed",
+      "severity": "info",
+      "detail": "tsc --noEmit",
+      "checked_at": "2026-09-06T16:18:52.757Z"
+    },
+    {
+      "key": "script:verify:admin",
+      "status": "passed",
+      "severity": "info",
+      "detail": "npm run admin-surface-check && npm run admin-agent -- plan && npm run admin-workflow-check && npm run release-check && npm run typecheck",
+      "checked_at": "2026-09-06T16:18:52.757Z"
+    },
+    {
+      "key": "script:admin-workflow-check",
+      "status": "passed",
+      "severity": "info",
+      "detail": "node scripts/admin-workflow-verifier.mjs",
+      "checked_at": "2026-09-06T16:18:52.757Z"
+    },
+    {
+      "key": "script:admin-workflow-e2e",
+      "status": "passed",
+      "severity": "info",
+      "detail": "node scripts/admin-workflow-e2e.mjs",
+      "checked_at": "2026-09-06T16:18:52.757Z"
+    },
+    {
+      "key": "admin:mode-contract",
+      "status": "passed",
+      "severity": "info",
+      "detail": "16/16 declared Admin modes detected",
+      "checked_at": "2026-09-06T16:18:52.760Z"
+    },
+    {
+      "key": "admin:ai-operations-ui",
+      "status": "passed",
+      "severity": "info",
+      "detail": "AI Operations loop is wired to QA run persistence",
+      "checked_at": "2026-09-06T16:18:52.760Z"
+    },
+    {
+      "key": "admin:repair-queue",
+      "status": "passed",
+      "severity": "info",
+      "detail": "repair queue migration is present",
+      "checked_at": "2026-09-06T16:18:52.760Z"
+    },
+    {
+      "key": "admin:snapshot-rpc",
+      "status": "passed",
+      "severity": "info",
+      "detail": "operational snapshot RPC is present",
+      "checked_at": "2026-09-06T16:18:52.760Z"
+    },
+    {
+      "key": "security:rls",
+      "status": "passed",
+      "severity": "info",
+      "detail": "RLS enabled on operational tables",
+      "checked_at": "2026-09-06T16:18:52.760Z"
+    },
+    {
+      "key": "security:rpc-auth",
+      "status": "passed",
+      "severity": "info",
+      "detail": "snapshot RPC contains an explicit admin authorization check",
+      "checked_at": "2026-09-06T16:18:52.760Z"
+    },
+    {
+      "key": "runtime:typecheck",
+      "status": "failed",
+      "severity": "critical",
+      "detail": "blocked: node_modules is absent; source-level typecheck cannot be verified here",
+      "checked_at": "2026-09-06T16:18:52.760Z"
+    }
+  ],
+  "runtime": {
+    "dependencies_installed": false,
+    "typecheck": {
+      "status": "blocked",
+      "output": "node_modules is absent; install pinned dependencies before runtime typecheck."
+    }
+  },
+  "diagnosis": {
+    "failed_checks": 1,
+    "high_severity_failures": 1,
+    "state": "attention_required"
+  },
+  "next_task": {
+    "priority": "critical",
+    "title": "Restore the reproducible dependency environment",
+    "reason": "The repository cannot prove TypeScript/runtime integrity without installed pinned dependencies.",
+    "action": "Install dependencies from the repository lockfile/package manifest, then run npm run typecheck and npm run ai:loop again.",
+    "blocked_by": [
+      "dependency installation/environment"
+    ]
+  },
+  "finished_at": "2026-09-06T16:18:52.760Z"
+}

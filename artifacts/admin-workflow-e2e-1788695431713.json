@@ -1,0 +1,25 @@
+{
+  "protocol": "red-point-admin-workflow-e2e/v1",
+  "started_at": "2026-09-06T11:50:31.713Z",
+  "safety": "Controlled test database only; normal authenticated admin session; no service-role key; no production mutation unless explicitly and intentionally configured.",
+  "environment": {
+    "url_configured": false,
+    "admin_credentials_configured": false,
+    "mutation_gate": "closed",
+    "environment_gate": "closed",
+    "cleanup": true,
+    "label": "red-point-admin-e2e"
+  },
+  "status": "blocked",
+  "steps": [
+    {
+      "key": "preflight",
+      "status": "blocked",
+      "detail": "missing environment: SUPABASE_E2E_URL, SUPABASE_E2E_ANON_KEY, SUPABASE_E2E_ADMIN_EMAIL, SUPABASE_E2E_ADMIN_PASSWORD; SUPABASE_E2E_ALLOW_MUTATIONS=true is not set; SUPABASE_E2E_CONFIRM=REDPOINT_TEST_DB is not set; SUPABASE_E2E_ENV=staging (or local) is required",
+      "checked_at": "2026-09-06T11:50:31.713Z"
+    }
+  ],
+  "created_event_id": null,
+  "error": "Runtime boundary is not ready.",
+  "finished_at": "2026-09-06T11:50:31.713Z"
+}

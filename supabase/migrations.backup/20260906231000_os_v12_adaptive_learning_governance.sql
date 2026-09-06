@@ -1,0 +1,1 @@
+-- Production parity marker. v12 schema/runtime was applied to the production Supabase project through the migration API.

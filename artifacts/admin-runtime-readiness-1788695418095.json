@@ -1,0 +1,100 @@
+{
+  "protocol": "red-point-admin-runtime-readiness/v1",
+  "checked_at": "2026-09-06T11:50:18.095Z",
+  "mutation_would_be_allowed": false,
+  "checks": [
+    {
+      "key": "env:url",
+      "status": "failed",
+      "severity": "high",
+      "detail": "missing",
+      "checked_at": "2026-09-06T11:50:18.095Z"
+    },
+    {
+      "key": "env:anon-key",
+      "status": "failed",
+      "severity": "high",
+      "detail": "missing",
+      "checked_at": "2026-09-06T11:50:18.095Z"
+    },
+    {
+      "key": "env:admin-email",
+      "status": "failed",
+      "severity": "high",
+      "detail": "missing",
+      "checked_at": "2026-09-06T11:50:18.095Z"
+    },
+    {
+      "key": "env:admin-password",
+      "status": "failed",
+      "severity": "high",
+      "detail": "missing",
+      "checked_at": "2026-09-06T11:50:18.095Z"
+    },
+    {
+      "key": "env:controlled-environment",
+      "status": "failed",
+      "severity": "high",
+      "detail": "SUPABASE_E2E_ENV must be staging or local",
+      "checked_at": "2026-09-06T11:50:18.095Z"
+    },
+    {
+      "key": "safety:mutation-opt-in",
+      "status": "failed",
+      "severity": "high",
+      "detail": "SUPABASE_E2E_ALLOW_MUTATIONS=true required",
+      "checked_at": "2026-09-06T11:50:18.095Z"
+    },
+    {
+      "key": "safety:confirmation",
+      "status": "failed",
+      "severity": "high",
+      "detail": "SUPABASE_E2E_CONFIRM=REDPOINT_TEST_DB required",
+      "checked_at": "2026-09-06T11:50:18.095Z"
+    },
+    {
+      "key": "runner:events",
+      "status": "passed",
+      "severity": "info",
+      "detail": "Events runtime lifecycle is implemented",
+      "checked_at": "2026-09-06T11:50:18.095Z"
+    },
+    {
+      "key": "runner:no-service-role",
+      "status": "passed",
+      "severity": "info",
+      "detail": "E2E runner contains no service-role credential path",
+      "checked_at": "2026-09-06T11:50:18.095Z"
+    },
+    {
+      "key": "schema:events",
+      "status": "passed",
+      "severity": "info",
+      "detail": "events table exists in repository migrations",
+      "checked_at": "2026-09-06T11:50:18.095Z"
+    },
+    {
+      "key": "schema:public-published-policy",
+      "status": "passed",
+      "severity": "info",
+      "detail": "public published-event read policy exists",
+      "checked_at": "2026-09-06T11:50:18.095Z"
+    },
+    {
+      "key": "schema:admin-policy",
+      "status": "passed",
+      "severity": "info",
+      "detail": "admin event management policy exists",
+      "checked_at": "2026-09-06T11:50:18.095Z"
+    },
+    {
+      "key": "schema:is-admin-helper",
+      "status": "passed",
+      "severity": "info",
+      "detail": "RLS helper exists for admin authorization",
+      "checked_at": "2026-09-06T11:50:18.095Z"
+    }
+  ],
+  "status": "blocked",
+  "next_action": "Configure the missing controlled runtime boundary; do not weaken safety gates."
+}
