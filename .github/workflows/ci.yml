@@ -15,4 +15,6 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx expo-doctor
+      - run: npm run release-check
       - run: npm run typecheck
+      - run: npm run ai:loop
