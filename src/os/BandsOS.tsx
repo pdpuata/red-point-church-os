@@ -53,7 +53,7 @@ export default function BandsOS() {
       if (next) await analyze(next.id);
     } catch (e:any) { setError(e?.message || String(e)); }
     finally { setBusy(false); }
-  }, [selectedId, analyze]);
+  }, [selectedId]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -83,7 +83,7 @@ export default function BandsOS() {
       <Text style={{ color:'#fff', fontSize:12, fontWeight:'800', letterSpacing:1 }}>AI WORSHIP INTELLIGENCE</Text>
       <Text style={{ color:'#fff', fontSize:18, fontWeight:'800', marginTop:5 }}>{nextService ? `Analysis for ${formatDate(nextService.service_date)}` : 'No upcoming service found'}</Text>
       {aiBusy ? <Text style={{ color:'#ddd', marginTop:8 }}>Analyzing roster, band structure and historical setlists…</Text> : ai?.configured === false ? <><Text style={{ color:'#ddd', marginTop:8 }}>{ai.summary}</Text><Text style={{ color:'#bbb', marginTop:6 }}>Deterministic analysis is available; AI synthesis is not configured.</Text></> : ai?.ok ? <><Text style={{ color:'#fff', marginTop:8, lineHeight:21 }}>{ai.summary || 'Analysis complete.'}</Text>{(ai.risks || []).slice(0,6).map((r:any,i:number)=><Text key={i} style={{ color:'#ddd', marginTop:6 }}>• {r}</Text>)}{ai.next_action ? <Text style={{ color:'#fff', fontWeight:'800', marginTop:9 }}>Next action: {ai.next_action}</Text> : null}</> : <Text style={{ color:'#ddd', marginTop:8 }}>No analysis available yet.</Text>}
-      <Pressable onPress={() => analyze(nextService?.id)} disabled={aiBusy || !nextService} style={{ marginTop:12, borderWidth:1, borderColor:'#fff', borderRadius:10, padding:9, alignItems:'center', opacity:aiBusy||!nextService?.id?.length?.valueOf?.() ? .55 : 1 }}><Text style={{ color:'#fff', fontWeight:'800' }}>{aiBusy ? 'ANALYZING…' : 'REFRESH AI ANALYSIS'}</Text></Pressable>
+      <Pressable onPress={() => analyze(nextService?.id)} disabled={aiBusy || !nextService} style={{ marginTop:12, borderWidth:1, borderColor:'#fff', borderRadius:10, padding:9, alignItems:'center', opacity:aiBusy || !nextService ? .55 : 1 }}><Text style={{ color:'#fff', fontWeight:'800' }}>{aiBusy ? 'ANALYZING…' : 'REFRESH AI ANALYSIS'}</Text></Pressable>
     </View>
 
     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop:14 }}>
