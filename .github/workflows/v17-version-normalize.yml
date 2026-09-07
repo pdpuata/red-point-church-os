@@ -13,6 +13,8 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - name: Install current dependency graph
+        run: npm ci
       - name: Align Expo SDK dependencies
         run: npx expo install --fix
       - name: Verify
