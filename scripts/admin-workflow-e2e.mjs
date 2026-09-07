@@ -138,10 +138,13 @@ if (checkOnly) {
     }
     step('admin.sign-in', 'passed', 'Authenticated admin session established.', { user_id: authData.user.id });
 
-    const { data: adminRow, error: adminError } = await supabase.from('admin_users').select('user_id').eq('user_id', authData.user.id).maybeSingle();
-    if (adminError) throw new Error(`admin role lookup failed: ${adminError.message}`);
-    if (!adminRow) throw new Error('Authenticated user is not present in public.admin_users.');
-    step('admin.role', 'passed', 'Authenticated user is an Admin according to database state.');
+    // Do not query public.admin_users directly: that table is intentionally not
+    // readable by the authenticated role. Use the security-definer RPC, which
+    // preserves the sensitive-table boundary while checking the real admin role.
+    const { data: adminCheck, error: adminError } = await supabase.rpc('is_admin');
+    if (adminError) throw new Error(`admin role check failed: ${adminError.message}`);
+    if (adminCheck !== true) throw new Error('Authenticated user is not an admin according to public.is_admin().');
+    step('admin.role', 'passed', 'Authenticated user is an Admin according to public.is_admin().');
 
     const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const title = `[E2E] Red Point Admin Event ${suffix}`;
