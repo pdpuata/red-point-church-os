@@ -18,4 +18,4 @@ jobs:
       - run: npm run release-check
       - run: npm run typecheck
       - run: npm run ai:loop
-      # v17: TypeScript, release consistency, and the operational loop are mandatory.
+      # v17: TypeScript, release consistency, operational-loop integrity, and canonical source restoration are mandatory.
