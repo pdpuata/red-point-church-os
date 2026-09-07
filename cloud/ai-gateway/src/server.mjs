@@ -1,12 +1,24 @@
 import http from 'node:http';
+import { timingSafeEqual } from 'node:crypto';
 import { analyzeEntities } from './google-language.mjs';
 
 const port = Number(process.env.PORT || 8080);
 const maxBodyBytes = 25000;
+const gatewayToken = process.env.AI_GATEWAY_TOKEN || '';
 
 function json(res, status, body) {
   res.writeHead(status, { 'content-type': 'application/json; charset=utf-8' });
   res.end(JSON.stringify(body));
+}
+
+function authorized(req) {
+  if (!gatewayToken) return false;
+  const supplied = req.headers.authorization?.startsWith('Bearer ')
+    ? req.headers.authorization.slice(7)
+    : '';
+  const a = Buffer.from(supplied);
+  const b = Buffer.from(gatewayToken);
+  return a.length === b.length && timingSafeEqual(a, b);
 }
 
 async function readJson(req) {
@@ -36,6 +48,10 @@ const server = http.createServer(async (req, res) => {
         version: '0.2.0',
         mode: 'free-tier-first'
       });
+    }
+
+    if (!authorized(req)) {
+      return json(res, 401, { ok: false, error: 'unauthorized' });
     }
 
     if (req.method === 'POST' && req.url === '/v1/text/entities') {
