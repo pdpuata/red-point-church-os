@@ -108,14 +108,34 @@ if (checkOnly) {
     const { createClient } = await import('@supabase/supabase-js');
     const url = supabaseUrl;
     const key = normalizeEnvValue(process.env.SUPABASE_E2E_ANON_KEY);
+
+    // Non-mutating transport/auth-gateway probe. This deliberately runs before
+    // sign-in so network/API-key failures are distinguishable from auth failures.
+    try {
+      const probe = await fetch(`${url}/auth/v1/settings`, {
+        headers: { apikey: key },
+      });
+      const probeBody = (await probe.text()).slice(0, 200);
+      if (!probe.ok) {
+        throw new Error(`Supabase Auth gateway probe returned HTTP ${probe.status}: ${probeBody}`);
+      }
+      step('runtime.auth-gateway', 'passed', 'Supabase Auth gateway is reachable and accepted the configured API key.');
+    } catch (probeError) {
+      const cause = probeError?.cause?.message ? `; cause: ${probeError.cause.message}` : '';
+      throw new Error(`Supabase Auth gateway probe failed: ${probeError?.message || String(probeError)}${cause}`);
+    }
+
     supabase = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
     anon = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-      email: process.env.SUPABASE_E2E_ADMIN_EMAIL,
-      password: process.env.SUPABASE_E2E_ADMIN_PASSWORD,
+      email: normalizeEnvValue(process.env.SUPABASE_E2E_ADMIN_EMAIL),
+      password: normalizeEnvValue(process.env.SUPABASE_E2E_ADMIN_PASSWORD),
     });
-    if (authError || !authData.user) throw new Error(`admin sign-in failed: ${authError?.message || 'no user returned'}`);
+    if (authError || !authData.user) {
+      const cause = authError?.cause?.message ? `; cause: ${authError.cause.message}` : '';
+      throw new Error(`admin sign-in failed: ${authError?.message || 'no user returned'}${cause}`);
+    }
     step('admin.sign-in', 'passed', 'Authenticated admin session established.', { user_id: authData.user.id });
 
     const { data: adminRow, error: adminError } = await supabase.from('admin_users').select('user_id').eq('user_id', authData.user.id).maybeSingle();
