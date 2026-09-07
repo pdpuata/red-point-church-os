@@ -11,7 +11,22 @@ export default function BandsOS() {
   const [services, setServices] = useState<any[]>([]);
   const [selectedId, setSelectedId] = useState('');
   const [busy, setBusy] = useState(false);
+  const [aiBusy, setAiBusy] = useState(false);
+  const [ai, setAi] = useState<any>(null);
   const [error, setError] = useState('');
+
+  const analyze = useCallback(async (serviceId?: string) => {
+    if (!supabase) return;
+    const target = serviceId || services.filter((s:any) => new Date(s.service_date + 'T23:59:59') >= new Date()).sort((a:any,b:any) => a.service_date.localeCompare(b.service_date))[0]?.id;
+    if (!target) return;
+    setAiBusy(true); setError('');
+    try {
+      const { data, error: e } = await supabase.functions.invoke('os-roster-ai-v1', { body: { service_id: target } });
+      if (e) throw e;
+      setAi(data);
+    } catch (e:any) { setError(e?.message || String(e)); }
+    finally { setAiBusy(false); }
+  }, [services]);
 
   const load = useCallback(async () => {
     if (!supabase) return;
@@ -34,9 +49,11 @@ export default function BandsOS() {
       setMembers((r || []).map((x:any) => ({ ...x, person: personMap.get(x.person_id) })));
       setServices(s || []);
       if (!selectedId && b?.[0]?.id) setSelectedId(b[0].id);
+      const next = (s || []).filter((x:any) => new Date(x.service_date + 'T23:59:59') >= new Date()).sort((a:any,b:any) => a.service_date.localeCompare(b.service_date))[0];
+      if (next) await analyze(next.id);
     } catch (e:any) { setError(e?.message || String(e)); }
     finally { setBusy(false); }
-  }, [selectedId]);
+  }, [selectedId, analyze]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -50,6 +67,7 @@ export default function BandsOS() {
   }, [selectedMembers]);
 
   const formatDate = (v:string) => new Intl.DateTimeFormat('en-ZA', { weekday:'short', day:'numeric', month:'short', year:'numeric' }).format(new Date(`${v}T12:00:00`));
+  const nextService = services.filter((s:any) => new Date(s.service_date + 'T23:59:59') >= new Date()).sort((a:any,b:any) => a.service_date.localeCompare(b.service_date))[0];
 
   return <View style={card}>
     <View style={{ flexDirection:'row', justifyContent:'space-between', alignItems:'center', gap:10 }}>
@@ -60,6 +78,13 @@ export default function BandsOS() {
       <Pressable onPress={load} disabled={busy} style={{ borderWidth:1, borderColor:'#171717', borderRadius:10, padding:9, opacity:busy?.55:1 }}><Text style={{ fontWeight:'800' }}>{busy ? '…' : 'REFRESH'}</Text></Pressable>
     </View>
     {error ? <View style={{ backgroundColor:'#fff4f2', borderRadius:12, padding:11, marginTop:12 }}><Text style={{ color:'#B42318', fontWeight:'700' }}>{error}</Text></View> : null}
+
+    <View style={{ marginTop:14, backgroundColor:'#171717', borderRadius:14, padding:14 }}>
+      <Text style={{ color:'#fff', fontSize:12, fontWeight:'800', letterSpacing:1 }}>AI WORSHIP INTELLIGENCE</Text>
+      <Text style={{ color:'#fff', fontSize:18, fontWeight:'800', marginTop:5 }}>{nextService ? `Analysis for ${formatDate(nextService.service_date)}` : 'No upcoming service found'}</Text>
+      {aiBusy ? <Text style={{ color:'#ddd', marginTop:8 }}>Analyzing roster, band structure and historical setlists…</Text> : ai?.configured === false ? <><Text style={{ color:'#ddd', marginTop:8 }}>{ai.summary}</Text><Text style={{ color:'#bbb', marginTop:6 }}>Deterministic analysis is available; AI synthesis is not configured.</Text></> : ai?.ok ? <><Text style={{ color:'#fff', marginTop:8, lineHeight:21 }}>{ai.summary || 'Analysis complete.'}</Text>{(ai.risks || []).slice(0,6).map((r:any,i:number)=><Text key={i} style={{ color:'#ddd', marginTop:6 }}>• {r}</Text>)}{ai.next_action ? <Text style={{ color:'#fff', fontWeight:'800', marginTop:9 }}>Next action: {ai.next_action}</Text> : null}</> : <Text style={{ color:'#ddd', marginTop:8 }}>No analysis available yet.</Text>}
+      <Pressable onPress={() => analyze(nextService?.id)} disabled={aiBusy || !nextService} style={{ marginTop:12, borderWidth:1, borderColor:'#fff', borderRadius:10, padding:9, alignItems:'center', opacity:aiBusy||!nextService?.id?.length?.valueOf?.() ? .55 : 1 }}><Text style={{ color:'#fff', fontWeight:'800' }}>{aiBusy ? 'ANALYZING…' : 'REFRESH AI ANALYSIS'}</Text></Pressable>
+    </View>
 
     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop:14 }}>
       {bands.map(b => <Pressable key={b.id} onPress={() => setSelectedId(b.id)} style={[pill, selectedId===b.id && { backgroundColor:'#171717', borderColor:'#171717' }]}>
