@@ -18,4 +18,4 @@ jobs:
       - run: npm run release-check
       - run: npm run typecheck
       - run: npm run ai:loop
-      # v17: keep the TypeScript gate explicit in the release pipeline.
+      # v17: TypeScript and operational-loop gates remain mandatory.
