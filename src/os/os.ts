@@ -144,6 +144,23 @@ export async function planRoster(serviceId: string) {
   return data;
 }
 
+export async function getLatestWorshipAnalysis(serviceId: string) {
+  if (!supabase) throw new Error('Supabase is not configured');
+  const { data: agents, error: ae } = await supabase.from('os_agents').select('id').eq('key','setlist_agent').limit(1);
+  if (ae) throw ae;
+  const agentId = agents?.[0]?.id;
+  if (!agentId) return null;
+  const { data, error } = await supabase.from('os_agent_runs')
+    .select('id,status,result,verification,finished_at,input_context')
+    .eq('agent_id', agentId)
+    .eq('status','completed')
+    .contains('input_context', { service_id: serviceId })
+    .order('finished_at',{ ascending:false }).limit(1).maybeSingle();
+  if (error) throw error;
+  const result = data?.result;
+  return result?.ok ? result : null;
+}
+
 export async function askAiRoster(serviceId: string) {
   if (!supabase) throw new Error('Supabase is not configured');
   const { data, error } = await supabase.functions.invoke('os-roster-ai-v1', {
