@@ -1,0 +1,36 @@
+name: V17 typecheck fix
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Repair App.tsx type errors
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('App.tsx')
+          s=p.read_text()
+          s=s.replace("source: 'rss',", "source: 'rss' as const,")
+          s=s.replace('await supabase.from(', 'await supabase!.from(')
+          s=s.replace('const {error}=await supabase.from(', 'const {error}=await supabase!.from(')
+          s=s.replace('const { data, error } = await supabase.from(', 'const { data, error } = await supabase!.from(')
+          p.write_text(s)
+          PY
+      - name: Verify typecheck
+        run: |
+          npm ci
+          npm run typecheck
+      - name: Commit fix and remove one-shot workflow
+        run: |
+          rm -f .github/workflows/v17-typecheck-fix.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add App.tsx .github/workflows/v17-typecheck-fix.yml
+          git diff --cached --quiet || git commit -m "Fix v17 TypeScript errors"
+          git push
