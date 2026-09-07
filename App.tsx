@@ -15,7 +15,7 @@ Notifications.setNotificationHandler({
   handleNotification: async () => ({ shouldShowBanner: true, shouldShowList: true, shouldPlaySound: false, shouldSetBadge: false }),
 });
 
-const APP_VERSION = '14.0.0';
+const APP_VERSION = '17.0.0';
 
 const church = {
   name: 'Red Point Church', service: 'Sunday Service', serviceTime: '09:00 AM',
