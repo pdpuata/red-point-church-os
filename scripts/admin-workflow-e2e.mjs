@@ -32,13 +32,27 @@ const allowMutations = process.env.SUPABASE_E2E_ALLOW_MUTATIONS === 'true';
 const confirmed = process.env.SUPABASE_E2E_CONFIRM === 'REDPOINT_TEST_DB';
 const controlledEnv = process.env.SUPABASE_E2E_ENV === 'staging' || process.env.SUPABASE_E2E_ENV === 'local';
 const cleanup = process.env.SUPABASE_E2E_CLEANUP !== 'false';
+const normalizeEnvValue = (value) => {
+  const trimmed = String(value || '').trim();
+  if ((trimmed.startsWith('"') && trimmed.endsWith('"')) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+    return trimmed.slice(1, -1).trim();
+  }
+  return trimmed;
+};
+const supabaseUrl = normalizeEnvValue(process.env.SUPABASE_E2E_URL);
+let validSupabaseUrl = false;
+try {
+  const parsed = new URL(supabaseUrl);
+  validSupabaseUrl = parsed.protocol === 'https:' || parsed.protocol === 'http:';
+} catch {}
 
 const report = {
   protocol: 'red-point-admin-workflow-e2e/v1',
   started_at: new Date().toISOString(),
   safety: 'Controlled test database only; normal authenticated admin session; no service-role key; no production mutation unless explicitly and intentionally configured.',
   environment: {
-    url_configured: Boolean(process.env.SUPABASE_E2E_URL),
+    url_configured: Boolean(supabaseUrl),
+    url_valid: validSupabaseUrl,
     admin_credentials_configured: Boolean(process.env.SUPABASE_E2E_ADMIN_EMAIL && process.env.SUPABASE_E2E_ADMIN_PASSWORD),
     mutation_gate: allowMutations && confirmed && controlledEnv ? 'open' : 'closed',
     environment_gate: controlledEnv ? 'open' : 'closed',
@@ -66,6 +80,7 @@ function writeReport() {
 if (checkOnly) {
   const reasons = [];
   if (missing.length) reasons.push(`missing environment: ${missing.join(', ')}`);
+  if (process.env.SUPABASE_E2E_URL && !validSupabaseUrl) reasons.push('SUPABASE_E2E_URL must be a valid HTTP or HTTPS URL');
   if (!allowMutations) reasons.push('SUPABASE_E2E_ALLOW_MUTATIONS=true is not set');
   if (!confirmed) reasons.push('SUPABASE_E2E_CONFIRM=REDPOINT_TEST_DB is not set');
   if (!controlledEnv) reasons.push('SUPABASE_E2E_ENV=staging (or local) is required');
@@ -74,9 +89,10 @@ if (checkOnly) {
   report.error = reasons.length ? 'Runtime boundary is not ready.' : null;
   writeReport();
   process.exitCode = reasons.length ? 2 : 0;
-} else if (missing.length || !allowMutations || !confirmed) {
+} else if (missing.length || !validSupabaseUrl || !allowMutations || !confirmed) {
   const reasons = [];
   if (missing.length) reasons.push(`missing environment: ${missing.join(', ')}`);
+  if (!validSupabaseUrl) reasons.push('SUPABASE_E2E_URL must be a valid HTTP or HTTPS URL');
   if (!allowMutations) reasons.push('SUPABASE_E2E_ALLOW_MUTATIONS=true is required');
   if (!confirmed) reasons.push('SUPABASE_E2E_CONFIRM=REDPOINT_TEST_DB is required');
   if (!controlledEnv) reasons.push('SUPABASE_E2E_ENV=staging (or local) is required');
@@ -90,8 +106,8 @@ if (checkOnly) {
   let eventId = null;
   try {
     const { createClient } = await import('@supabase/supabase-js');
-    const url = process.env.SUPABASE_E2E_URL;
-    const key = process.env.SUPABASE_E2E_ANON_KEY;
+    const url = supabaseUrl;
+    const key = normalizeEnvValue(process.env.SUPABASE_E2E_ANON_KEY);
     supabase = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
     anon = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 
