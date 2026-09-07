@@ -1,0 +1,38 @@
+name: V17 restore canonical App source
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Restore canonical App.tsx from the pre-v17 baseline
+        shell: bash
+        run: |
+          git fetch --no-tags origin 7a6fd5073d44da981697b72ffe2ceda6434789f6
+          git show 7a6fd5073d44da981697b72ffe2ceda6434789f6:App.tsx > App.tsx
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('App.tsx')
+          s=p.read_text()
+          s=s.replace("const APP_VERSION = '14.0.0';", "const APP_VERSION = '17.0.0';")
+          s=s.replace("source: 'rss',", "source: 'rss' as const,")
+          s=s.replace('await supabase.from(', 'await supabase!.from(')
+          p.write_text(s)
+          PY
+      - name: Verify canonical source
+        run: |
+          npm ci
+          npm run release-check
+          npm run typecheck
+      - name: Commit restored source and remove one-shot workflow
+        run: |
+          rm -f .github/workflows/v17-restore-app-source.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add App.tsx .github/workflows/v17-restore-app-source.yml
+          git diff --cached --quiet || git commit -m "Restore canonical App source for v17"
+          git push
