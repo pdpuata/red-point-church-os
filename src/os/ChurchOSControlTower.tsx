@@ -11,6 +11,7 @@ import EventFabricOS from './EventFabricOS';
 import AutonomousRuntimeOS from './AutonomousRuntimeOS';
 import InstitutionalMemoryOS from './InstitutionalMemoryOS';
 import AdaptiveLearningOS from './AdaptiveLearningOS';
+import AIExecutiveBrief from './AIExecutiveBrief';
 
 const formatDate = (value: string | null | undefined) => value ? new Intl.DateTimeFormat('en-ZA', { weekday: 'short', day: 'numeric', month: 'short' }).format(new Date(value)) : '—';
 
@@ -170,6 +171,7 @@ export default function ChurchOSControlTower() {
     <AutonomousRuntimeOS />
     <InstitutionalMemoryOS />
     <AdaptiveLearningOS />
+    <AIExecutiveBrief serviceId={serviceId || undefined} />
     <PeopleActivationOS />
     <View style={{ backgroundColor: '#171717', borderRadius: 18, padding: 18, marginBottom: 14 }}>
       <Text style={{ color: '#fff', fontSize: 12, fontWeight: '800', letterSpacing: 1.2 }}>CHURCH OS · CONTROL TOWER</Text>
