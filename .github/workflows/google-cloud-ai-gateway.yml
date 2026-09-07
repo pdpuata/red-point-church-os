@@ -1,0 +1,31 @@
+name: Google Cloud AI Gateway
+
+on:
+  pull_request:
+    paths:
+      - 'cloud/**'
+      - '.github/workflows/google-cloud-ai-gateway.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'cloud/**'
+      - '.github/workflows/google-cloud-ai-gateway.yml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cloud/ai-gateway
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: cloud/ai-gateway/package.json
+      - run: npm install --ignore-scripts --no-audit --no-fund
+      - run: node --check src/server.mjs
+      - run: node --check src/google-language.mjs
+      - run: npm test
