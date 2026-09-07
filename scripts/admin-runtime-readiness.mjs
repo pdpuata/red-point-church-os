@@ -24,9 +24,23 @@ const readSqlSources = () => {
 };
 const checks = [];
 const check = (key, passed, detail, severity = passed ? 'info' : 'high') => checks.push({ key, status: passed ? 'passed' : 'failed', severity, detail, checked_at: now() });
+const normalizeEnvValue = (value) => {
+  const trimmed = String(value || '').trim();
+  if ((trimmed.startsWith('"') && trimmed.endsWith('"')) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+    return trimmed.slice(1, -1).trim();
+  }
+  return trimmed;
+};
+const supabaseUrl = normalizeEnvValue(process.env.SUPABASE_E2E_URL);
+let validSupabaseUrl = false;
+try {
+  const parsed = new URL(supabaseUrl);
+  validSupabaseUrl = parsed.protocol === 'https:' || parsed.protocol === 'http:';
+} catch {}
 
 const env = {
-  url: Boolean(process.env.SUPABASE_E2E_URL),
+  url: Boolean(supabaseUrl),
+  validUrl: validSupabaseUrl,
   anonKey: Boolean(process.env.SUPABASE_E2E_ANON_KEY),
   email: Boolean(process.env.SUPABASE_E2E_ADMIN_EMAIL),
   password: Boolean(process.env.SUPABASE_E2E_ADMIN_PASSWORD),
@@ -37,10 +51,11 @@ const env = {
 
 for (const [key, value] of Object.entries({
   'env:url': env.url,
+  'env:url-format': env.validUrl,
   'env:anon-key': env.anonKey,
   'env:admin-email': env.email,
   'env:admin-password': env.password,
-})) check(key, value, value ? 'configured' : 'missing');
+})) check(key, value, value ? 'configured' : key === 'env:url-format' ? 'SUPABASE_E2E_URL must be a valid HTTP or HTTPS URL' : 'missing');
 check('env:controlled-environment', env.environment === 'staging' || env.environment === 'local', env.environment ? `SUPABASE_E2E_ENV=${env.environment}` : 'SUPABASE_E2E_ENV must be staging or local');
 check('safety:mutation-opt-in', env.allowMutations, env.allowMutations ? 'mutation gate explicitly opened' : 'SUPABASE_E2E_ALLOW_MUTATIONS=true required');
 check('safety:confirmation', env.confirmation, env.confirmation ? 'test database confirmation present' : 'SUPABASE_E2E_CONFIRM=REDPOINT_TEST_DB required');
@@ -58,7 +73,7 @@ const missing = checks.filter((c) => c.status === 'failed');
 const report = {
   protocol: 'red-point-admin-runtime-readiness/v1',
   checked_at: now(),
-  mutation_would_be_allowed: env.url && env.anonKey && env.email && env.password && env.allowMutations && env.confirmation && (env.environment === 'staging' || env.environment === 'local'),
+  mutation_would_be_allowed: env.url && env.validUrl && env.anonKey && env.email && env.password && env.allowMutations && env.confirmation && (env.environment === 'staging' || env.environment === 'local'),
   checks,
   status: missing.some((c) => c.severity === 'high') ? 'blocked' : 'ready',
   next_action: missing.length ? 'Resolve the failed repository/runtime contracts; do not weaken safety gates.' : 'Run npm run admin-workflow-e2e against the disposable/staging database and inspect the evidence artifact.',
