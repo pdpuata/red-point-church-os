@@ -33,7 +33,7 @@ type NotificationTarget = 'Home' | 'Events' | 'Announcements' | 'Sermons';
 type NotificationKind = 'General' | 'Event' | 'Announcement' | 'Sermon';
 type Event = { id: string; title: string; description: string | null; starts_at: string; ends_at?: string | null; location: string | null; published: boolean; image_url?: string | null };
 type Announcement = { id: string; title: string; body: string; published_at: string; published: boolean; important?: boolean; expires_at?: string | null; image_url?: string | null };
-type Sermon = { id: string; title: string; description: string | null; preached_at: string | null; youtube_url: string | null; published: boolean; image_url?: string | null; source_url?: string | null; source?: 'database' | 'rss' };
+type Sermon = { id: string; title: string; description: string | null; preached_at: string | null; youtube_url: string | null; published: boolean; image_url?: string | null; source_url?: string | null; source?: 'database' | 'rss'; audio_url?: string | null };
 
 type RssSermon = Sermon & { rss_guid: string; published_at: string | null; audio_url?: string | null };
 type Ministry = { id: string; title: string; description: string | null; meeting_info: string | null; contact: string | null; image_url: string | null; sort_order: number; published: boolean };
@@ -50,7 +50,7 @@ const fallbackEvents: Event[] = [
 const fallbackAnnouncements: Announcement[] = [{ id: 'welcome', title: 'Welcome to Red Point Church', body: 'Important church updates will appear here.', published_at: new Date().toISOString(), published: true, important: true, expires_at: null }];
 const fallbackSermons: Sermon[] = [{ id: 'channel', title: 'Latest sermons', description: 'Watch the latest Red Point Church messages on the Red Point sermon feed.', preached_at: null, youtube_url: church.youtube, published: true }];
 
-const SERMON_RSS_CACHE_KEY = 'red-point.latest-sermon-rss.v1';
+const SERMON_RSS_CACHE_KEY = 'red-point.sermon-rss-library.v2';
 function decodeXml(value: string) {
   return value.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/<[^>]+>/g, '').trim();
 }
@@ -97,23 +97,24 @@ async function fetchSermonRssXml(): Promise<string> {
   if (!response.ok) throw new Error(`RSS ${response.status}`);
   return response.text();
 }
-async function fetchLatestSermonFromRss(): Promise<RssSermon | null> {
+async function fetchSermonLibraryFromRss(): Promise<RssSermon[]> {
   try {
     const xml = await fetchSermonRssXml();
     const items = extractRssItems(xml).sort((a, b) => +new Date(b.published_at || b.preached_at || 0) - +new Date(a.published_at || a.preached_at || 0));
-    const latest = items[0] || null;
-    if (latest) await AsyncStorage.setItem(SERMON_RSS_CACHE_KEY, JSON.stringify(latest));
-    return latest;
+    if (items.length) await AsyncStorage.setItem(SERMON_RSS_CACHE_KEY, JSON.stringify(items));
+    return items;
   } catch {
     try {
       const cached = await AsyncStorage.getItem(SERMON_RSS_CACHE_KEY);
-      return cached ? JSON.parse(cached) as RssSermon : null;
-    } catch { return null; }
+      const parsed = cached ? JSON.parse(cached) : [];
+      return Array.isArray(parsed) ? parsed as RssSermon[] : [];
+    } catch { return []; }
   }
 }
-
-
-
+async function fetchLatestSermonFromRss(): Promise<RssSermon | null> {
+  const library = await fetchSermonLibraryFromRss();
+  return library[0] || null;
+}
 class AppErrorBoundary extends Component<{children: React.ReactNode}, {hasError:boolean}> {
   state={hasError:false};
   static getDerivedStateFromError(){return {hasError:true};}
@@ -262,7 +263,7 @@ function Sermons({ sermons, navigate, selectSermon }: { sermons: Sermon[]; navig
 function SermonDetail({ sermon, navigate }: { sermon?: Sermon; navigate:(s:Screen)=>void }) {
   if(!sermon) return <ScrollView contentContainerStyle={styles.content}><Pressable accessibilityRole="button" accessibilityLabel="Go back to sermons" hitSlop={8} onPress={()=>navigate('Sermons')}><Text style={styles.back}>‹ Back to sermons</Text></Pressable><Text style={styles.heading}>Sermon</Text><Text style={styles.intro}>This sermon could not be found.</Text></ScrollView>;
   const share=async()=>{try{await Share.share({title:sermon.title,message:`${sermon.title}${sermon.preached_at?`\n${formatDate(sermon.preached_at)}`:''}${sermon.youtube_url?`\n${sermon.youtube_url}`:''}`});}catch{}};
-  return <ScrollView contentContainerStyle={styles.content}><Pressable accessibilityRole="button" accessibilityLabel="Go back to sermons" hitSlop={8} onPress={()=>navigate('Sermons')}><Text style={styles.back}>‹ Back to sermons</Text></Pressable>{sermon.image_url?<Image source={{uri:sermon.image_url}} style={styles.detailImage}/>:null}<Text style={styles.eyebrow}>{sermon.preached_at?formatDate(sermon.preached_at):'RED POINT CHURCH'}</Text><Text style={styles.heading}>{sermon.title}</Text>{sermon.description?<View style={styles.card}><Text style={styles.cardTitle}>About this message</Text><Text style={styles.cardBody}>{sermon.description}</Text></View>:null}{(sermon.youtube_url||sermon.source_url)?<Button label="WATCH MESSAGE" onPress={()=>Linking.openURL((sermon.youtube_url||sermon.source_url)!)} />:null}<Button label="SHARE SERMON" secondary onPress={share}/></ScrollView>;
+  return <ScrollView contentContainerStyle={styles.content}><Pressable accessibilityRole="button" accessibilityLabel="Go back to sermons" hitSlop={8} onPress={()=>navigate('Sermons')}><Text style={styles.back}>‹ Back to sermons</Text></Pressable>{sermon.image_url?<Image source={{uri:sermon.image_url}} style={styles.detailImage}/>:null}<Text style={styles.eyebrow}>{sermon.preached_at?formatDate(sermon.preached_at):'RED POINT CHURCH'}</Text><Text style={styles.heading}>{sermon.title}</Text>{sermon.description?<View style={styles.card}><Text style={styles.cardTitle}>About this message</Text><Text style={styles.cardBody}>{sermon.description}</Text></View>:null}{sermon.audio_url?<Button label="LISTEN TO SERMON" onPress={()=>Linking.openURL(sermon.audio_url!)} />:null}{(sermon.youtube_url||sermon.source_url)?<Button label="OPEN SERMON PAGE" secondary onPress={()=>Linking.openURL((sermon.youtube_url||sermon.source_url)!)} />:null}<Button label="SHARE SERMON" secondary onPress={share}/></ScrollView>;
 }
 function Announcements({ announcements }: { announcements: Announcement[] }) {
   announcements=announcements.filter(a=>a.published&&(!a.expires_at||new Date(a.expires_at).getTime()>Date.now()));
@@ -575,9 +576,9 @@ function App(){
   const [notificationsEnabled,setNotificationsEnabled]=useState(false);
   const [refreshing,setRefreshing]=useState(false); const [selectedEvent,setSelectedEvent]=useState<Event|undefined>(); const [selectedSermon,setSelectedSermon]=useState<Sermon|undefined>(); const [events,setEvents]=useState<Event[]>([]); const [announcements,setAnnouncements]=useState<Announcement[]>([]); const [sermons,setSermons]=useState<Sermon[]>([]); const [contactConfig,setContactConfig]=useState<ContactConfig>(defaultContactConfig); const [homeConfig,setHomeConfig]=useState<HomeConfig>(defaultHomeConfig); const [editingEventId,setEditingEventId]=useState<string|null>(null); const [loading,setLoading]=useState(true); const [loadError,setLoadError]=useState(false); const [partialError,setPartialError]=useState(false); const [lastUpdated,setLastUpdated]=useState<string|null>(null);
   const load=async()=>{if(!supabase){setLoadError(true);setLoading(false);return;}setLoadError(false);setLoading(true);try{const results=await Promise.all([supabase.from('events').select('id,title,description,starts_at,ends_at,location,published,image_url').eq('published',true).order('starts_at',{ascending:true}),supabase.from('announcements').select('id,title,body,published_at,published,important,expires_at,image_url').eq('published',true).order('published_at',{ascending:false}),supabase.from('sermons').select('id,title,description,preached_at,youtube_url,published,image_url').eq('published',true).order('preached_at',{ascending:false}),supabase.from('site_settings').select('key,value'),supabase.from('ministries').select('id,title,description,meeting_info,contact,image_url,sort_order,published').eq('published',true).order('sort_order').order('title')]);const [e,a,s,h,m]=results;const failed=[e,a,s,h,m].filter(x=>x.error);setPartialError(failed.length>0);if(e.data)setEvents(e.data);if(a.data)setAnnouncements((a.data||[]).filter((x:any)=>!x.expires_at||new Date(x.expires_at).getTime()>Date.now()));if(s.data)setSermons(s.data);if(m.data)setMinistries(m.data);if(h.data){const map=Object.fromEntries(h.data.map((row:any)=>[row.key,row.value]));setHomeConfig({...defaultHomeConfig,...map});setContactConfig({...defaultContactConfig,phone:map.contact_phone||'',email:map.contact_email||'',whatsapp:map.contact_whatsapp||'',officeHours:map.contact_office_hours||defaultContactConfig.officeHours});}
-    const rssLatest=await fetchLatestSermonFromRss();
-    if(rssLatest){setSermons(current=>{const db=current.filter(s=>s.id!==rssLatest.id);return [rssLatest,...db].sort((a,b)=>+new Date(b.preached_at||0)-+new Date(a.preached_at||0));});}
-    if(failed.length===5 && !rssLatest)throw new Error('All church data requests failed');setLastUpdated(new Date().toISOString());}catch{setLoadError(true);}finally{setLoading(false);}};
+    const rssLibrary=await fetchSermonLibraryFromRss();
+    if(rssLibrary.length){setSermons(rssLibrary);}
+    if(failed.length===5 && !rssLibrary.length)throw new Error('All church data requests failed');setLastUpdated(new Date().toISOString());}catch{setLoadError(true);}finally{setLoading(false);}};
   useEffect(()=>{load(); supabase?.auth.getSession().then(({data})=>setSession(data.session)); const sub=supabase?.auth.onAuthStateChange((_event,next)=>setSession(next)); return()=>sub?.data.subscription.unsubscribe();},[]);
   const refresh=async()=>{setRefreshing(true);await load();setRefreshing(false);};
   useEffect(()=>{
