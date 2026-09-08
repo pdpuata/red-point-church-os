@@ -16,6 +16,23 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Prepare E2E environment file
+        env:
+          SUPABASE_E2E_URL: ${{ secrets.SUPABASE_E2E_URL }}
+          SUPABASE_E2E_ANON_KEY: ${{ secrets.SUPABASE_E2E_ANON_KEY }}
+          SUPABASE_E2E_ADMIN_EMAIL: ${{ secrets.SUPABASE_E2E_ADMIN_EMAIL }}
+          SUPABASE_E2E_ADMIN_PASSWORD: ${{ secrets.SUPABASE_E2E_ADMIN_PASSWORD }}
+          SUPABASE_E2E_CONFIRM: ${{ secrets.SUPABASE_E2E_CONFIRM }}
+        run: |
+          cat > .env <<EOF
+          SUPABASE_E2E_URL=$SUPABASE_E2E_URL
+          SUPABASE_E2E_ANON_KEY=$SUPABASE_E2E_ANON_KEY
+          SUPABASE_E2E_ADMIN_EMAIL=$SUPABASE_E2E_ADMIN_EMAIL
+          SUPABASE_E2E_ADMIN_PASSWORD=$SUPABASE_E2E_ADMIN_PASSWORD
+          SUPABASE_E2E_ENV=staging
+          SUPABASE_E2E_ALLOW_MUTATIONS=true
+          SUPABASE_E2E_CONFIRM=$SUPABASE_E2E_CONFIRM
+          EOF
       - name: Validate controlled runtime boundary
         env:
           SUPABASE_E2E_URL: ${{ secrets.SUPABASE_E2E_URL }}
