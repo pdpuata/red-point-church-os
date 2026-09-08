@@ -1,0 +1,55 @@
+name: One-time sermon audio playback fix
+
+on:
+  push:
+    branches: [fix/sermon-audio-playback]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: ${{ !contains(github.event.head_commit.message, 'Apply sermon audio playback fix') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Patch sermon RSS audio parsing and playback
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('App.tsx')
+          s = p.read_text(encoding='utf-8')
+          old = "const audio = xmlAttr(enclosure, 'enclosure', 'url') || null;"
+          new = "const mediaContent = item.match(/<media:content\\b[^>]*>/i)?.[0] || '';\n    const audio = xmlAttr(enclosure, 'enclosure', 'url') || xmlAttr(mediaContent, 'media:content', 'url') || null;"
+          if old not in s: raise SystemExit('Expected RSS audio parser line not found')
+          s = s.replace(old, new, 1)
+          old = "{sermon.audio_url?<Button label=\"LISTEN TO SERMON\" onPress={()=>Linking.openURL(sermon.audio_url!)} />:null}"
+          new = "{sermon.audio_url ? (Platform.OS === 'web' ? <View style={{marginTop:18,backgroundColor:'#FFF',borderRadius:14,padding:12,borderWidth:1,borderColor:'#E3E3E0'}}><Text style={styles.cardTitle}>Listen to this sermon</Text>{React.createElement('audio',{controls:true,preload:'metadata',src:sermon.audio_url,style:{width:'100%'}})}</View> : <Button label=\"LISTEN TO SERMON\" onPress={()=>Linking.openURL(sermon.audio_url!)} />) : null}"
+          if old not in s: raise SystemExit('Expected sermon audio button not found')
+          s = s.replace(old, new, 1)
+          old = "<Text style={styles.intro}>Search and watch messages from Red Point Church.</Text>"
+          new = "<Text style={styles.intro}>Search and listen to messages from Red Point Church.</Text>"
+          if old in s: s = s.replace(old, new, 1)
+          old = "body:r.description||'Watch this message.'"
+          new = "body:r.description||'Listen to this message.'"
+          if old in s: s = s.replace(old, new, 1)
+          old = "description:'Watch this message from Red Point Church.'"
+          new = "description:'Listen to this message from Red Point Church.'"
+          if old in s: s = s.replace(old, new, 1)
+          p.write_text(s, encoding='utf-8')
+          PY
+      - name: Verify patch
+        run: |
+          grep -F "Listen to this sermon" App.tsx
+          grep -F "mediaContent" App.tsx
+          npm ci
+          npx tsc --noEmit
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add App.tsx
+          git commit -m "Apply sermon audio playback fix"
+          git push
