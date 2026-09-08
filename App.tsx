@@ -50,7 +50,7 @@ const fallbackEvents: Event[] = [
 const fallbackAnnouncements: Announcement[] = [{ id: 'welcome', title: 'Welcome to Red Point Church', body: 'Important church updates will appear here.', published_at: new Date().toISOString(), published: true, important: true, expires_at: null }];
 const fallbackSermons: Sermon[] = [{ id: 'channel', title: 'Latest sermons', description: 'Find the latest Red Point Church messages on the church sermon feed.', preached_at: null, youtube_url: null, source_url: church.sermonRss, audio_url: null, published: true }];
 
-const SERMON_RSS_CACHE_KEY = 'red-point.sermon-rss-library.v3';
+const SERMON_RSS_CACHE_KEY = 'red-point.sermon-rss-library.v4';
 function decodeXml(value: string) {
   return value.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/<[^>]+>/g, '').trim();
 }
@@ -81,7 +81,7 @@ function extractRssItems(xml: string): RssSermon[] {
       const parsed = new Date(Date.UTC(year, month - 1, day, 7, 0, 0));
       if (!Number.isNaN(parsed.getTime())) preachedAt = parsed.toISOString();
     }
-    return { id: `rss:${guid}`, rss_guid: guid, title, description, preached_at: preachedAt, youtube_url: link && /(?:youtube\.com|youtu\.be)/i.test(link) ? link : null, published: true, source_url: link, source: 'rss' as const, published_at: publishedDate && !Number.isNaN(publishedDate.getTime()) ? publishedDate.toISOString() : null, audio_url: audio };
+    return { id: `rss:${guid}`, rss_guid: guid, title, description, preached_at: preachedAt, youtube_url: null, published: true, source_url: link, source: 'rss' as const, published_at: publishedDate && !Number.isNaN(publishedDate.getTime()) ? publishedDate.toISOString() : null, audio_url: audio };
   }).filter(item => !!item.title);
 }
 async function fetchSermonRssXml(): Promise<string> {
@@ -99,7 +99,7 @@ async function fetchSermonRssXml(): Promise<string> {
 async function fetchSermonLibraryFromRss(): Promise<RssSermon[]> {
   try {
     const xml = await fetchSermonRssXml();
-    const items = extractRssItems(xml).sort((a, b) => +new Date(b.published_at || b.preached_at || 0) - +new Date(a.published_at || a.preached_at || 0));
+    const items = extractRssItems(xml).sort((a, b) => +new Date(b.preached_at || b.published_at || 0) - +new Date(a.preached_at || a.published_at || 0));
     if (items.length) await AsyncStorage.setItem(SERMON_RSS_CACHE_KEY, JSON.stringify(items));
     return items;
   } catch (error) {
