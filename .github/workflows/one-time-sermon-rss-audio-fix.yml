@@ -9,7 +9,6 @@ permissions:
 
 jobs:
   fix:
-    if: ${{ github.event.head_commit.message == 'Apply RSS sermon audio playback fix' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -35,7 +34,7 @@ jobs:
           elif "TAP TO LISTEN" not in s:
               raise SystemExit('Latest sermon action label pattern not found')
 
-          pattern = re.compile(r"function SermonDetail\\(\\{ sermon, navigate \\}: \\{ sermon\\?: Sermon; navigate:\(s:Screen\\)=>void \\}\\) \\{[\\s\\S]*?(?=\\nfunction [A-Za-z_])")
+          pattern = re.compile(r"function SermonDetail\(\{ sermon, navigate \}: \{ sermon\?: Sermon; navigate:\(s:Screen\)=>void \}\) \{[\s\S]*?(?=\nfunction [A-Za-z_])")
           replacement = '''function SermonDetail({ sermon, navigate }: { sermon?: Sermon; navigate:(s:Screen)=>void }) {
   if(!sermon) return <ScrollView contentContainerStyle={styles.content}><Pressable accessibilityRole="button" accessibilityLabel="Go back to sermons" hitSlop={8} onPress={()=>navigate('Sermons')}><Text style={styles.back}>‹ Back to sermons</Text></Pressable><Text style={styles.heading}>Sermon</Text><Text style={styles.intro}>This sermon could not be found.</Text></ScrollView>;
   const share=async()=>{try{await Share.share({title:sermon.title,message:`${sermon.title}${sermon.preached_at?`\\n${formatDate(sermon.preached_at)}`:''}${sermon.source_url?`\\n${sermon.source_url}`:''}`});}catch{}};
