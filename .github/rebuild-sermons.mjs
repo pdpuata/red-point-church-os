@@ -3,7 +3,7 @@ import fs from 'node:fs';
 const appPath = 'App.tsx';
 let app = fs.readFileSync(appPath, 'utf8');
 
-app = app.replace(/youtube_url:\s*link && \/\(\?:youtube\\\.com\|youtu\\\.be\)\/i\.test\(link\) \? link : null,/, 'youtube_url: null,');
+app = app.replace(/youtube_url:\s*link && \/\(\?:youtube\\\.com\|youtu\\.be\)\/i\.test\(link\) \? link : null,/, 'youtube_url: null,');
 app = app.replace(/const SERMON_RSS_CACHE_KEY = '[^']+';/, "const SERMON_RSS_CACHE_KEY = 'red-point.sermon-rss-library.v5';");
 
 // Always route the latest sermon action to the in-app sermon detail/player.
@@ -43,7 +43,7 @@ function SermonAudioPlayer({ audioUrl, title }: { audioUrl: string; title: strin
     <Text style={styles.eyebrow}>RED POINT AUDIO</Text>
     <Text style={styles.cardTitle}>{title}</Text>
     <Text style={styles.cardBody}>Audio from the Red Point Church sermon feed.</Text>
-    <View style={{ height: 8, backgroundColor: '#e5e5e5', borderRadius: 4, overflow: 'hidden', marginTop: 12, marginBottom: 8 }}><View style={{ width: String(pct) + '%', height: '100%', backgroundColor: '#111' }} /></View>
+    <View style={{ height: 8, backgroundColor: '#e5e5e5', borderRadius: 4, overflow: 'hidden', marginTop: 12, marginBottom: 8 }}><View style={{ width: (String(pct) + '%') as any, height: '100%', backgroundColor: '#111' }} /></View>
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}><Text style={styles.fieldHint}>{fmt(current)}</Text><Text style={styles.fieldHint}>{fmt(duration)}</Text></View>
     <View style={{ flexDirection: 'row', gap: 10 }}><View style={{ flex: 1 }}><Button label={status.playing ? 'PAUSE' : 'PLAY SERMON'} onPress={toggle} /></View><View style={{ flex: 1 }}><Button label="RESTART" onPress={restart} secondary /></View></View>
     {error ? <Text style={{ marginTop: 10, color: '#a00' }}>{error}</Text> : null}
@@ -56,7 +56,7 @@ const detailReplacement = `function SermonDetail({ sermon, navigate }: { sermon?
   if (!sermon) return <ScrollView contentContainerStyle={styles.content}><SectionCard eyebrow="SERMON" title="No sermon selected" body="Return to the sermon library and choose a message." action="BACK TO SERMONS" onPress={()=>navigate('Sermons')} /></ScrollView>;
   return <ScrollView contentContainerStyle={styles.content}>
     <Pressable onPress={()=>navigate('Sermons')}><Text style={styles.eventLink}>‹ BACK TO SERMONS</Text></Pressable>
-    {sermon.image_url ? <Image source={{uri: sermon.image_url}} style={styles.heroImage} /> : null}
+    {sermon.image_url ? <Image source={{uri: sermon.image_url}} style={styles.cardImage} /> : null}
     <Text style={styles.eyebrow}>SERMON</Text><Text style={styles.heading}>{sermon.title}</Text>
     {sermon.preached_at ? <Text style={styles.fieldHint}>{formatDate(sermon.preached_at)}</Text> : null}
     {sermon.description ? <Text style={styles.intro}>{sermon.description}</Text> : null}
