@@ -1,7 +1,9 @@
+import fs from 'node:fs/promises';
+
 const RSS_URL = 'https://www.redpointchurch.com/pinetown-podcast-feed?format=rss';
 const SUPABASE_URL = process.env.SUPABASE_E2E_URL || 'https://gvyqluwtzujefernhvfd.supabase.co';
 const PROXY_URL = `${SUPABASE_URL.replace(/\/$/, '')}/functions/v1/sermon-rss`;
-const APP_FILE = 'App.tsx';
+const APP_FILE = new URL('../App.tsx', import.meta.url);
 
 function fail(message) {
   throw new Error(message);
@@ -135,7 +137,7 @@ async function main() {
   const proxiedAudio = await requestRange(proxyLatest.audio, 'Supabase proxied audio');
   console.log(`✓ Proxied audio playable: HTTP ${proxiedAudio.status}, ${proxiedAudio.type}`);
 
-  const appSource = await (await fetch('https://raw.githubusercontent.com/pdpuata/red-point-church-os/main/App.tsx')).text();
+  const appSource = await fs.readFile(APP_FILE, 'utf8');
   const requiredAppContracts = [
     ['authoritative RSS URL', RSS_URL],
     ['web sermon-rss invocation', "supabase.functions.invoke('sermon-rss'"],
