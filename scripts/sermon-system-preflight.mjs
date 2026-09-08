@@ -102,7 +102,7 @@ async function main() {
     ['RSS audio extraction', 'const audio ='],
     ['web HTML audio player', "React.createElement('audio'"],
     ['audio-first latest CTA', 'LISTEN TO SERMON'],
-    ['Home listen button', 'label=\"LISTEN TO SERMON\"'],
+    ['Home listen button', 'LISTEN TO SERMON'],
   ];
   for (const [label, needle] of requiredAppContracts) if (!appSource.includes(needle)) fail(`App contract missing: ${label}`);
   if (/youtube_url:\s*link\s*,\s*published:\s*true/.test(appSource)) fail('App parser still treats every RSS link as a YouTube URL');

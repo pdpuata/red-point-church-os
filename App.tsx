@@ -157,74 +157,30 @@ function Home({ navigate, events, announcements, sermons, config, selectSermon }
   const now = Date.now();
   const upcoming = events.filter(e => e.published && new Date(e.starts_at).getTime() >= now).sort((a,b) => +new Date(a.starts_at)-+new Date(b.starts_at));
   const next = upcoming[0];
-  const latestAnnouncement = announcements
-    .filter(a => a.published && (!a.expires_at || new Date(a.expires_at).getTime() > now))
-    .sort((a,b) => +new Date(b.published_at) - +new Date(a.published_at))[0];
-  const latestSermon = sermons
-    .filter(s => s.published)
-    .sort((a,b) => +new Date(b.preached_at || 0) - +new Date(a.preached_at || 0))[0];
-
-  const openLatestSermon = () => {
-    if (latestSermon) {
-      selectSermon(latestSermon);
-      navigate('SermonDetail');
-    } else {
-      navigate('Sermons');
-    }
-  };
-
+  const latestAnnouncement = announcements.filter(a => a.published && (!a.expires_at || new Date(a.expires_at).getTime() > now)).sort((a,b) => +new Date(b.published_at) - +new Date(a.published_at))[0];
+  const latestSermon = sermons.filter(s => s.published).sort((a,b) => +new Date(b.preached_at || 0) - +new Date(a.preached_at || 0))[0];
+  const openLatestSermon = () => { if (latestSermon) { selectSermon(latestSermon); navigate('SermonDetail'); } else navigate('Sermons'); };
+  const listenLatestSermon = () => { if (latestSermon?.audio_url) Linking.openURL(latestSermon.audio_url); else openLatestSermon(); };
   return <ScrollView contentContainerStyle={styles.content}>
     <Text style={styles.greeting}>{config.greeting || 'Welcome'}</Text>
     <Text style={styles.homeWelcomeTitle}>Welcome to Red Point Church</Text>
     <Text style={styles.homeWelcomeBody}>We’re glad you’re here.</Text>
-
     <Text style={styles.homeSectionLabel}>LATEST SERMON</Text>
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={latestSermon ? `Open latest sermon ${latestSermon.title}` : 'Open sermons'}
-      onPress={openLatestSermon}
-      style={({pressed})=>[styles.latestSermonCard, pressed&&styles.pressed]}
-    >
-      {latestSermon?.image_url ? (
-        <Image source={{uri: latestSermon.image_url}} style={styles.latestSermonImage} accessibilityLabel="Latest sermon thumbnail" />
-      ) : (
-        <View style={styles.latestSermonPlaceholder}>
-          <Text style={styles.latestSermonPlaceholderLabel}>LATEST SERMON</Text>
-          <Text style={styles.latestSermonPlaceholderIcon}>▶</Text>
-        </View>
-      )}
+    <View style={styles.latestSermonCard}>
+      {latestSermon?.image_url ? <Image source={{uri:latestSermon.image_url}} style={styles.latestSermonImage} accessibilityLabel="Latest sermon thumbnail" /> : <View style={styles.latestSermonPlaceholder}><Text style={styles.latestSermonPlaceholderLabel}>LATEST SERMON</Text><Text style={styles.latestSermonPlaceholderIcon}>▶</Text></View>}
       <View style={styles.latestSermonCopy}>
         <Text style={styles.latestSermonTitle}>{latestSermon?.title || 'No sermon published yet'}</Text>
         {latestSermon?.preached_at ? <Text style={styles.latestSermonMeta}>{formatDate(latestSermon.preached_at)}</Text> : null}
-        <Text style={styles.latestSermonAction}>{latestSermon ? (latestSermon.audio_url ? 'TAP TO LISTEN' : latestSermon.youtube_url ? 'TAP TO WATCH MESSAGE' : 'OPEN SERMON') : 'VIEW SERMONS'}</Text>
+        {latestSermon?.audio_url ? <Button label="LISTEN TO SERMON" onPress={listenLatestSermon} /> : latestSermon?.youtube_url ? <Button label="WATCH MESSAGE" onPress={openLatestSermon} /> : <Button label="VIEW SERMON" onPress={openLatestSermon} secondary />}
       </View>
-    </Pressable>
-
-    <Text style={styles.homeSectionLabel}>LATEST UPDATE</Text>
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={latestAnnouncement ? `Read latest update ${latestAnnouncement.title}` : 'Open announcements'}
-      onPress={()=>navigate('Announcements')}
-      style={({pressed})=>[styles.latestUpdateCard, pressed&&styles.pressed]}
-    >
-      <Text style={styles.latestUpdateTitle}>{latestAnnouncement?.title || 'No current update'}</Text>
-      <Text style={styles.latestUpdateBody}>{latestAnnouncement?.body || 'Church updates and important information will appear here.'}</Text>
-      <Text style={styles.latestUpdateAction}>TAP TO READ UPDATES</Text>
-    </Pressable>
-
-    <Text style={styles.homeSectionLabel}>THIS SUNDAY</Text>
-    <View style={styles.sundayHomeCard}>
-      <Text style={styles.sundayHomeTitle}>{next?.title || church.service}</Text>
-      <Text style={styles.sundayHomeTime}>{next ? formatDate(next.starts_at) : church.serviceTime}</Text>
-      <Text style={styles.sundayHomeAddress}>📍 {next?.location || church.address}</Text>
-      <Button label="VIEW SUNDAY DETAILS" secondary onPress={()=>navigate('Sunday')} />
-      <Button label="GET DIRECTIONS" onPress={()=>Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(next?.location || church.address)}`)} />
     </View>
-
-    <Pressable accessibilityRole="button" accessibilityLabel="Learn what to expect if you are new" onPress={()=>navigate('New')} style={({pressed})=>[styles.homeNewLink,pressed&&styles.pressed]}>
-      <Text style={styles.homeNewLinkTitle}>New to Red Point?</Text>
-      <Text style={styles.homeNewLinkBody}>Find out what to expect and how to get connected.</Text>
+    <Text style={styles.homeSectionLabel}>LATEST UPDATE</Text>
+    <Pressable accessibilityRole="button" accessibilityLabel={latestAnnouncement ? `Read latest update ${latestAnnouncement.title}` : 'Open announcements'} onPress={()=>navigate('Announcements')} style={({pressed})=>[styles.latestUpdateCard, pressed&&styles.pressed]}>
+      <Text style={styles.latestUpdateTitle}>{latestAnnouncement?.title || 'No current update'}</Text><Text style={styles.latestUpdateBody}>{latestAnnouncement?.body || 'Church updates and important information will appear here.'}</Text><Text style={styles.latestUpdateAction}>TAP TO READ UPDATES</Text>
     </Pressable>
+    <Text style={styles.homeSectionLabel}>THIS SUNDAY</Text>
+    <View style={styles.sundayHomeCard}><Text style={styles.sundayHomeTitle}>{next?.title || church.service}</Text><Text style={styles.sundayHomeTime}>{next ? formatDate(next.starts_at) : church.serviceTime}</Text><Text style={styles.sundayHomeAddress}>📍 {next?.location || church.address}</Text><Button label="VIEW SUNDAY DETAILS" secondary onPress={()=>navigate('Sunday')} /><Button label="GET DIRECTIONS" onPress={()=>Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(next?.location || church.address)}`)} /></View>
+    <Pressable accessibilityRole="button" accessibilityLabel="Learn what to expect if you are new" onPress={()=>navigate('New')} style={({pressed})=>[styles.homeNewLink,pressed&&styles.pressed]}><Text style={styles.homeNewLinkTitle}>New to Red Point?</Text><Text style={styles.homeNewLinkBody}>Find out what to expect and how to get connected.</Text></Pressable>
   </ScrollView>;
 }
 function Search({ events, announcements, sermons, navigate, selectEvent, selectSermon }: { events: Event[]; announcements: Announcement[]; sermons: Sermon[]; navigate:(s:Screen)=>void; selectEvent:(e:Event)=>void; selectSermon:(s:Sermon)=>void }) {
