@@ -21,7 +21,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Install compatible Expo audio package
-        run: npm install --save-exact expo-audio@~57.0.4
+        run: npm install --save-exact expo-audio@57.0.4 --legacy-peer-deps
       - name: Rewrite sermon system
         run: node .github/rebuild-sermons.mjs
       - name: Typecheck
