@@ -5,14 +5,13 @@ import BandsOS from './BandsOS';
 import PeopleCapabilityLegacyOS from './PeopleCapabilityLegacyOS';
 import SongSelectMusicOS from './SongSelectMusicOS';
 import AIOperatingModelOS from './AIOperatingModelOS';
-import ChurchOSControlTower from './ChurchOSControlTower';
 
 type Area = 'music' | 'visitors' | 'sunday' | null;
 
 const areaMeta = {
   music: { title: 'MUSIC & BANDS', body: 'People, bands, roster and worship readiness' },
   visitors: { title: 'PEOPLE', body: 'Visitors and people who need a response' },
-  sunday: { title: 'SUNDAY', body: 'The live Sunday operating controls' },
+  sunday: { title: 'SUNDAY', body: 'Sunday readiness and operating controls' },
 } as const;
 
 export default function PeopleCapabilityOS() {
@@ -48,6 +47,12 @@ export default function PeopleCapabilityOS() {
 
     {(!area || area === 'visitors') ? <PeopleCapabilityLegacyOS /> : null}
 
-    {(!area || area === 'sunday') ? <ChurchOSControlTower /> : null}
+    {area === 'sunday' ? <View style={{ marginHorizontal: 20, marginBottom: 14, borderWidth: 1, borderColor: '#e3e3e0', borderRadius: 18, padding: 16 }}>
+      <Text style={{ fontSize: 18, fontWeight: '800' }}>Sunday readiness</Text>
+      <Text style={{ color: '#666', marginTop: 5, lineHeight: 21 }}>Sunday operating controls are available in the Control Tower below.</Text>
+      <Pressable accessibilityRole="button" accessibilityLabel="Return to Control Tower" onPress={() => setArea(null)} style={{ marginTop: 12, borderWidth: 1, borderColor: '#171717', borderRadius: 10, padding: 11, alignItems: 'center' }}>
+        <Text style={{ fontWeight: '800' }}>OPEN CONTROL TOWER</Text>
+      </Pressable>
+    </View> : null}
   </View>;
 }
