@@ -14,6 +14,8 @@ if (!app.includes("from 'expo-audio'")) {
   app = app.replace(importNeedle, `${importNeedle}\nimport { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';`);
 }
 
+// Keep the injected component free of nested JavaScript template literals so this
+// generator itself remains valid Node.js/ESM JavaScript.
 const playerComponent = `
 function SermonAudioPlayer({ audioUrl, title }: { audioUrl: string; title: string }) {
   const player = useAudioPlayer(audioUrl, { updateInterval: 500 });
@@ -36,12 +38,12 @@ function SermonAudioPlayer({ audioUrl, title }: { audioUrl: string; title: strin
   const duration = Number(status.duration || 0);
   const current = Number(status.currentTime || 0);
   const pct = duration > 0 ? Math.min(100, Math.max(0, (current / duration) * 100)) : 0;
-  const fmt = (seconds: number) => { const s = Math.max(0, Math.floor(seconds)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+  const fmt = (seconds: number) => { const s = Math.max(0, Math.floor(seconds)); return String(Math.floor(s / 60)) + ':' + String(s % 60).padStart(2, '0'); };
   return <View style={styles.card}>
     <Text style={styles.eyebrow}>RED POINT AUDIO</Text>
     <Text style={styles.cardTitle}>{title}</Text>
     <Text style={styles.cardBody}>Audio from the Red Point Church sermon feed.</Text>
-    <View style={{ height: 8, backgroundColor: '#e5e5e5', borderRadius: 4, overflow: 'hidden', marginTop: 12, marginBottom: 8 }}><View style={{ width: `${pct}%`, height: '100%', backgroundColor: '#111' }} /></View>
+    <View style={{ height: 8, backgroundColor: '#e5e5e5', borderRadius: 4, overflow: 'hidden', marginTop: 12, marginBottom: 8 }}><View style={{ width: String(pct) + '%', height: '100%', backgroundColor: '#111' }} /></View>
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}><Text style={styles.fieldHint}>{fmt(current)}</Text><Text style={styles.fieldHint}>{fmt(duration)}</Text></View>
     <View style={{ flexDirection: 'row', gap: 10 }}><View style={{ flex: 1 }}><Button label={status.playing ? 'PAUSE' : 'PLAY SERMON'} onPress={toggle} /></View><View style={{ flex: 1 }}><Button label="RESTART" onPress={restart} secondary /></View></View>
     {error ? <Text style={{ marginTop: 10, color: '#a00' }}>{error}</Text> : null}
