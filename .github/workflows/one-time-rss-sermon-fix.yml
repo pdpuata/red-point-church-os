@@ -22,8 +22,8 @@ jobs:
 
           s = s.replace("const [syncingYouTube,setSyncingYouTube]=useState(false);", "const [syncingSermons,setSyncingSermons]=useState(false);")
 
-          pattern = r"  const syncYouTube=async\(\)=>\{[\s\S]*?\n  \};"
-          replacement = '''  const syncSermonsFromWebsite=async()=>{\n    setSyncingSermons(true);\n    try{\n      const library=await fetchSermonLibraryFromRss();\n      if(!library.length)throw new Error('No sermons were returned by the Red Point Church sermon feed.');\n      setSermons(library);\n      Alert.alert('Sermons refreshed',`Loaded ${library.length} sermons from the Red Point Church website.`);\n    }catch(error){Alert.alert('Could not refresh sermons',error instanceof Error?error.message:'Please try again.');}\n    finally{setSyncingSermons(false);}\n  };'''
+          pattern = r"  const syncYouTube=async\(\)=>\{[\s\S]*?(?=\n  const updateVisitorStatus=)"
+          replacement = '''  const syncSermonsFromWebsite=async()=>{\n    setSyncingSermons(true);\n    try{\n      const library=await fetchSermonLibraryFromRss();\n      if(!library.length)throw new Error('No sermons were returned by the Red Point Church sermon feed.');\n      setSermons(library);\n      Alert.alert('Sermons refreshed',`Loaded ${library.length} sermons from the Red Point Church website.`);\n    }catch(error){Alert.alert('Could not refresh sermons',error instanceof Error?error.message:'Please try again.');}\n    finally{setSyncingSermons(false);}\n  };\n'''
           s2, n = re.subn(pattern, replacement, s, count=1)
           if n != 1:
               raise SystemExit('Could not locate syncYouTube function')
