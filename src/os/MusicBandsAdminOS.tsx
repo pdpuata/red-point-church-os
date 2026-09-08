@@ -34,12 +34,13 @@ export default function MusicBandsAdminOS({ onBack }: { onBack: () => void }) {
   const leaders = assignments.filter(a => String(a.responsibility || '').toLowerCase().includes('leader'));
 
   const loadService = useCallback(async (id: string) => {
-    if (!supabase) throw new Error('Supabase is not configured');
+    const client = supabase;
+    if (!client) throw new Error('Supabase is not configured');
     const [r, a, c, sl] = await Promise.all([
       getRosterRecommendations(id),
       getServiceAssignments(id),
       getCommunicationQueue(),
-      supabase.from('music_setlists').select('id,status,notes').eq('service_id', id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+      client.from('music_setlists').select('id,status,notes').eq('service_id', id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
     ]);
     if (sl.error) throw sl.error;
     setRecommendations(r);
@@ -47,21 +48,20 @@ export default function MusicBandsAdminOS({ onBack }: { onBack: () => void }) {
     setCommunications(c);
     setSetlist(sl.data || null);
     if (sl.data) {
-      const { data: items, error: itemError } = await supabase.from('music_setlist_items').select('id,song_id,position,key_override,arrangement,notes').eq('setlist_id', sl.data.id).order('position');
+      const { data: items, error: itemError } = await client.from('music_setlist_items').select('id,song_id,position,key_override,arrangement,notes').eq('setlist_id', sl.data.id).order('position');
       if (itemError) throw itemError;
       setSetlistItems(items || []);
       const ids = (items || []).map((x: any) => x.song_id).filter(Boolean);
       if (ids.length) {
-        const { data: songs, error: songError } = await supabase.from('music_songs').select('id,title,artist').in('id', ids);
+        const { data: songs, error: songError } = await client.from('music_songs').select('id,title,artist').in('id', ids);
         if (songError) throw songError;
-        setPeople(p => p);
         const songMap = Object.fromEntries((songs || []).map((s: any) => [s.id, s]));
         setSetlistItems((items || []).map((x: any) => ({ ...x, song: songMap[x.song_id] })));
       }
     } else setSetlistItems([]);
     const personIds = (a || []).map((x: any) => x.person_id).filter(Boolean);
     if (personIds.length) {
-      const { data: personRows, error: personError } = await supabase.from('music_people').select('id,display_name').in('id', personIds);
+      const { data: personRows, error: personError } = await client.from('music_people').select('id,display_name').in('id', personIds);
       if (personError) throw personError;
       setPeople(Object.fromEntries((personRows || []).map((p: any) => [p.id, p.display_name])));
     } else setPeople({});
@@ -141,13 +141,14 @@ export default function MusicBandsAdminOS({ onBack }: { onBack: () => void }) {
   };
 
   const publishSetlist = () => {
-    if (!setlist || !supabase) return;
+    const client = supabase;
+    if (!setlist || !client) return;
     Alert.alert('Publish setlist?', 'This will make the six-song setlist the published setlist for this Sunday.', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Publish', onPress: async () => {
         setBusy(true); setError('');
         try {
-          const { error: updateError } = await supabase.from('music_setlists').update({ status: 'published', updated_at: new Date().toISOString() }).eq('id', setlist.id);
+          const { error: updateError } = await client.from('music_setlists').update({ status: 'published', updated_at: new Date().toISOString() }).eq('id', setlist.id);
           if (updateError) throw updateError;
           await loadService(serviceId);
         } catch (e: any) { setError(e?.message || 'We could not publish the setlist.'); }
