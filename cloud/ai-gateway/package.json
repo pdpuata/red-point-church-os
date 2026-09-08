@@ -1,0 +1,14 @@
+{
+  "name": "red-point-church-ai-gateway",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "start": "node src/server.mjs",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "google-auth-library": "^10.3.0"
+  }
+}
