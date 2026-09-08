@@ -62,7 +62,9 @@ jobs:
           pf = Path('scripts/sermon-system-preflight.mjs')
           source = pf.read_text()
           source = source.replace("['web sermon-rss invocation', \"supabase.functions.invoke('sermon-rss'\"],", "['web sermon-rss proxy URL', 'const proxyUrl ='],\n    ['web sermon-rss POST', \"method: 'POST'\"],")
-          source = source.replace("['audio-first latest CTA', 'latest.audio_url ?'],", "['audio-first latest CTA', 'TAP TO LISTEN'],\n    ['Home listen button', 'label=\\\"LISTEN TO SERMON\\\"'],")
+          source = source.replace("['audio-first latest CTA', 'latest.audio_url ?'],", "['audio-first latest CTA', 'LISTEN TO SERMON'],")
+          source = source.replace("['audio-first latest CTA', 'TAP TO LISTEN'],", "['audio-first latest CTA', 'LISTEN TO SERMON'],")
+          source = source.replace("['Home listen button', 'label=\\\"LISTEN TO SERMON\\\"'],", "['Home listen button', 'LISTEN TO SERMON'],")
           pf.write_text(source)
 
       - name: Verify patched source
@@ -70,7 +72,7 @@ jobs:
           grep -q "LISTEN TO SERMON" App.tsx
           grep -q "const proxyUrl =" App.tsx
           grep -q "method: 'POST'" App.tsx
-          grep -q "TAP TO LISTEN" scripts/sermon-system-preflight.mjs
+          grep -q "LISTEN TO SERMON" scripts/sermon-system-preflight.mjs
           npm run sermon:preflight
 
       - name: Commit and push
