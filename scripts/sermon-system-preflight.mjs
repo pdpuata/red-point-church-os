@@ -97,10 +97,12 @@ async function main() {
   const appSource = await fs.readFile(APP_FILE, 'utf8');
   const requiredAppContracts = [
     ['authoritative RSS URL', RSS_URL],
-    ['web sermon-rss invocation', "supabase.functions.invoke('sermon-rss'"],
+    ['web sermon-rss proxy URL', 'const proxyUrl ='],
+    ['web sermon-rss POST', "method: 'POST'"],
     ['RSS audio extraction', 'const audio ='],
     ['web HTML audio player', "React.createElement('audio'"],
-    ['audio-first latest CTA', 'latest.audio_url ?'],
+    ['audio-first latest CTA', 'LISTEN TO SERMON'],
+    ['Home listen button', 'label=\"LISTEN TO SERMON\"'],
   ];
   for (const [label, needle] of requiredAppContracts) if (!appSource.includes(needle)) fail(`App contract missing: ${label}`);
   if (/youtube_url:\s*link\s*,\s*published:\s*true/.test(appSource)) fail('App parser still treats every RSS link as a YouTube URL');
