@@ -50,7 +50,7 @@ const fallbackEvents: Event[] = [
 const fallbackAnnouncements: Announcement[] = [{ id: 'welcome', title: 'Welcome to Red Point Church', body: 'Important church updates will appear here.', published_at: new Date().toISOString(), published: true, important: true, expires_at: null }];
 const fallbackSermons: Sermon[] = [{ id: 'channel', title: 'Latest sermons', description: 'Find the latest Red Point Church messages on the church sermon feed.', preached_at: null, youtube_url: null, source_url: church.sermonRss, audio_url: null, published: true }];
 
-const SERMON_RSS_CACHE_KEY = 'red-point.sermon-rss-library.v2';
+const SERMON_RSS_CACHE_KEY = 'red-point.sermon-rss-library.v3';
 function decodeXml(value: string) {
   return value.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/<[^>]+>/g, '').trim();
 }
@@ -85,20 +85,16 @@ function extractRssItems(xml: string): RssSermon[] {
   }).filter(item => !!item.title);
 }
 async function fetchSermonRssXml(): Promise<string> {
-  // Web browsers cannot fetch the feed directly: the church website sends no CORS headers.
-  // On web, proxy through the sermon-rss edge function; native fetches the feed directly.
-  if (Platform.OS === 'web') {
-    const proxyUrl = 'https://gvyqluwtzujefernhvfd.supabase.co/functions/v1/sermon-rss';
-    const response = await fetch(proxyUrl, { method: 'POST', headers: { Accept: 'application/json', 'Content-Type': 'application/json' }, body: '{}' });
-    if (!response.ok) throw new Error(`RSS proxy ${response.status}`);
-    const data = await response.json();
-    const xml = data?.xml;
-    if (typeof xml === 'string' && xml.length) return xml;
-    throw new Error('RSS proxy returned no feed');
-  }
-  const response = await fetch(church.sermonRss, { headers: { Accept: 'application/rss+xml, application/xml, text/xml' } });
-  if (!response.ok) throw new Error(`RSS ${response.status}`);
-  return response.text();
+  // Use the Supabase sermon-rss proxy on every platform. It filters unpublished
+  // sermons and rewrites Squarespace audio enclosures to HTTPS proxy URLs that
+  // support range requests, so native playback gets the same feed as web.
+  const proxyUrl = 'https://gvyqluwtzujefernhvfd.supabase.co/functions/v1/sermon-rss';
+  const response = await fetch(proxyUrl, { method: 'POST', headers: { Accept: 'application/json', 'Content-Type': 'application/json' }, body: '{}' });
+  if (!response.ok) throw new Error(`RSS proxy ${response.status}`);
+  const data = await response.json();
+  const xml = data?.xml;
+  if (typeof xml === 'string' && xml.length) return xml;
+  throw new Error('RSS proxy returned no feed');
 }
 async function fetchSermonLibraryFromRss(): Promise<RssSermon[]> {
   try {
