@@ -36,9 +36,8 @@ if (source !== fs.readFileSync(sourcePath,'utf8')) {
   source = source.slice(0,start) + replacement + source.slice(next+1);
   fs.writeFileSync(sourcePath, source);
 
-  // Commit the repaired App.tsx while restoring this temporary hook to the
-  // version from the parent commit, leaving the repository clean afterward.
   const { execSync } = await import('node:child_process');
+  execSync('git fetch --no-tags --depth=2 origin main');
   execSync('git checkout HEAD^ -- scripts/release-check.mjs');
   execSync('git config user.name "github-actions[bot]"');
   execSync('git config user.email "41898282+github-actions[bot]@users.noreply.github.com"');
