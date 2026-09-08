@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { supabase } from '../../lib/supabase';
 
 export type ElderDashboardAction = 'sunday' | 'music' | 'visitors' | 'content' | 'admin';
