@@ -1,0 +1,47 @@
+name: Finish sermon rebuild
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Expo audio
+        run: npm install --save-exact expo-audio@57.0.4 --legacy-peer-deps
+      - name: Rewrite sermon system
+        run: node .github/rebuild-sermons.mjs
+      - name: Verify sermon rewrite
+        run: |
+          grep -q "from 'expo-audio'" App.tsx
+          grep -q "function SermonAudioPlayer" App.tsx
+          grep -q "red-point.sermon-rss-library.v5" App.tsx
+          grep -q "youtube_url: null" App.tsx
+      - name: Typecheck
+        run: npx tsc --noEmit
+      - name: Commit verified sermon rebuild
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add App.tsx package.json package-lock.json
+          git diff --cached --quiet && exit 0
+          git commit -m "feat: complete sermon audio rebuild"
+          git push origin main
+      - name: Remove temporary sermon tooling
+        run: |
+          git rm -f .github/rebuild-sermons.mjs .github/workflows/rebuild-sermon-system.yml .github/workflows/finish-sermon-rebuild.yml .github/workflows/sermon-rebuild-v2.yml || true
+          git diff --cached --quiet || git commit -m "chore: remove temporary sermon rebuild tooling"
+          git push origin main || true
