@@ -1,6 +1,8 @@
 name: Rebuild sermon system from Red Point website
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
