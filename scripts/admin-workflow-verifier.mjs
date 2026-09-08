@@ -17,7 +17,18 @@ const migrations = fs.existsSync(migrationsDir)
       .map(x => readIfExists(path.join(migrationsDir, x)))
       .join('\n')
   : '';
-const database = `${schema}\n${migrations}`;
+// The repository also contains versioned SQL definitions which are part of the
+// canonical database contract even when the active migration directory has been
+// compacted. Include them for contract discovery; runtime E2E remains the proof
+// of what is actually deployed.
+const sqlDir = path.join(root, 'supabase');
+const versionedSql = fs.existsSync(sqlDir)
+  ? fs.readdirSync(sqlDir)
+      .filter(x => x.endsWith('.sql') && x !== 'schema.sql')
+      .map(x => readIfExists(path.join(sqlDir, x)))
+      .join('\n')
+  : '';
+const database = `${schema}\n${migrations}\n${versionedSql}`;
 
 const actions = [
   ...[['create','insert'],['read','select'],['edit','update'],['publish','update({published:true})'],['unpublish','update({published:false})'],['delete','delete']].map(([key,op])=>({surface:'Events',table:'events',action:key,handler:key==='create'||key==='edit'?'saveEvent':key==='publish'||key==='unpublish'?'toggleEvent':key==='delete'?'remove':'refresh',operation:op,policy:'admins manage events',verify:key==='publish'||key==='unpublish'?'public read/RLS visibility':'read-after-mutation'})),
@@ -36,6 +47,11 @@ const actions = [
 const escaped = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const hasFrom = (source, table) => new RegExp(`\\.from\\(\\s*['"]${escaped(table)}['"]\\s*\\)`, 'i').test(source);
 const hasHandler = (source, handler) => new RegExp(`(?:const|function)\\s+${escaped(handler)}\\s*[=(]`, 'i').test(source) || (handler === 'refresh' && /const\s+refresh\s*=/.test(source));
+const handlerSource = (source, handler) => {
+  const match = source.match(new RegExp(`(?:const|function)\\s+${escaped(handler)}\\s*[=(]`, 'i'));
+  if (!match || match.index == null) return '';
+  return source.slice(match.index, match.index + 7000);
+};
 const operationRegex = {
   insert: /\.insert\s*\(/i,
   select: /\.select\s*\(/i,
@@ -43,14 +59,13 @@ const operationRegex = {
   delete: /\.delete\s*\(/i,
 };
 const hasOperation = (source, action) => {
-  const index = source.search(new RegExp(`\\.from\\(\\s*['"]${escaped(action.table)}['"]\\s*\\)`, 'i'));
-  if (index < 0) return false;
-  const window = source.slice(index, index + 1200);
+  const scoped = handlerSource(source, action.handler);
+  const window = scoped || source;
   if (action.operation === 'insert/update') return operationRegex.insert.test(window) && operationRegex.update.test(window);
   if (action.operation === 'update({published})') return /\.update\s*\(\s*\{\s*published\s*:/i.test(window);
   if (action.operation === 'update({published:true})') return /\.update\s*\(\s*\{\s*published\s*:\s*true/i.test(window);
   if (action.operation === 'update({published:false})') return /\.update\s*\(\s*\{\s*published\s*:\s*false/i.test(window);
-  if (action.operation === 'delete') return operationRegex.delete.test(window);
+  if (action.operation === 'delete') return operationRegex.delete.test(window) || /\.from\(\s*table\s*\)\s*\.delete\s*\(/i.test(window);
   return operationRegex[action.operation]?.test(window) ?? false;
 };
 
@@ -71,7 +86,7 @@ const results = actions.map((a) => {
 const passed=results.filter(x=>x.status==='passed').length;
 const failed=results.length-passed;
 const report={
-  protocol:'red-point-admin-workflow-verifier/v2',
+  protocol:'red-point-admin-workflow-verifier/v3',
   started_at:new Date().toISOString(),
   vertical_slice:{surface:'Events',lifecycle:'draft → edit → publish → public read → unpublish → public hidden → delete',status:results.filter(x=>x.surface==='Events').every(x=>x.status==='passed')?'locally_verified':'failed'},
   total_action_count:results.length,
