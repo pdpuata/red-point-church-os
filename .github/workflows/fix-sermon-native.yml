@@ -1,0 +1,58 @@
+name: Apply sermon native playback fix
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-sermon-native.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Patch App.tsx
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('App.tsx')
+          text = path.read_text(encoding='utf-8')
+
+          old_key = "const SERMON_RSS_CACHE_KEY = 'red-point.sermon-rss-library.v2';"
+          new_key = "const SERMON_RSS_CACHE_KEY = 'red-point.sermon-rss-library.v3';"
+          if old_key not in text:
+              raise SystemExit('Expected sermon RSS cache key not found')
+          text = text.replace(old_key, new_key, 1)
+
+          start = text.index('async function fetchSermonRssXml(): Promise<string> {')
+          end = text.index('async function fetchSermonLibraryFromRss(): Promise<RssSermon[]> {', start)
+
+          replacement = '''async function fetchSermonRssXml(): Promise<string> {
+            // Use the Supabase sermon-rss proxy on every platform. It filters unpublished
+            // sermons and rewrites Squarespace audio enclosures to HTTPS proxy URLs that
+            // support range requests, so native playback gets the same feed as web.
+            const proxyUrl = 'https://gvyqluwtzujefernhvfd.supabase.co/functions/v1/sermon-rss';
+            const response = await fetch(proxyUrl, { method: 'POST', headers: { Accept: 'application/json', 'Content-Type': 'application/json' }, body: '{}' });
+            if (!response.ok) throw new Error(`RSS proxy ${response.status}`);
+            const data = await response.json();
+            const xml = data?.xml;
+            if (typeof xml === 'string' && xml.length) return xml;
+            throw new Error('RSS proxy returned no feed');
+          }
+          '''
+
+          text = text[:start] + replacement + text[end:]
+          path.write_text(text, encoding='utf-8')
+
+      - name: Commit patch and remove temporary workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add App.tsx
+          git rm .github/workflows/fix-sermon-native.yml
+          git commit -m "fix: use sermon RSS audio proxy on native" 
+          git push
