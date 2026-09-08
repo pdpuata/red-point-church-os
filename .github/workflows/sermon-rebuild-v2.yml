@@ -1,7 +1,7 @@
 name: Sermon playback rebuild v2
 
 on:
-  push:
+  pull_request:
     branches: [main]
 
 jobs:
@@ -21,15 +21,19 @@ jobs:
       - run: npm install --save-exact expo-audio@~57.0.4
       - run: node .github/rebuild-sermons.mjs
       - run: npx tsc --noEmit
-      - name: Commit
+      - name: Commit verified rebuild to main
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout main
+          git reset --hard origin/main
           git add App.tsx package.json package-lock.json
           git diff --cached --quiet || git commit -m "feat: complete sermon audio rebuild"
           git push origin main
-      - name: Cleanup
+      - name: Cleanup tooling on main
         run: |
+          git checkout main
           git rm .github/rebuild-sermons.mjs .github/workflows/rebuild-sermon-system.yml .github/workflows/sermon-rebuild-v2.yml || true
           git diff --cached --quiet || git commit -m "chore: remove sermon rebuild tooling"
           git push origin main || true
