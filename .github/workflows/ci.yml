@@ -18,4 +18,43 @@ jobs:
       - run: npm run release-check
       - run: npm run typecheck
       - run: npm run ai:loop
-      # v17: TypeScript, release consistency, operational-loop integrity, and canonical source restoration are mandatory.
+      # Admin surface: every declared Admin route and operational hook must remain wired.
+      - run: npm run admin-surface-check
+      # Admin workflow: every mapped Admin CRUD/publish action must retain its source + RLS contract.
+      - run: npm run admin-workflow-check
+      # Keep the aggregate Admin gate explicit so new Admin contract checks cannot silently fall out of CI.
+      - run: npm run verify:admin
+      # v17: TypeScript, release consistency, operational-loop integrity, canonical source restoration,
+      # Admin surface coverage, and Admin workflow contracts are mandatory CI gates.
+
+  admin-e2e:
+    if: ${{ secrets.SUPABASE_E2E_URL != '' && secrets.SUPABASE_E2E_ANON_KEY != '' && secrets.SUPABASE_E2E_ADMIN_EMAIL != '' && secrets.SUPABASE_E2E_ADMIN_PASSWORD != '' && secrets.SUPABASE_E2E_CONFIRM == 'REDPOINT_TEST_DB' }}
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Validate controlled runtime boundary
+        env:
+          SUPABASE_E2E_URL: ${{ secrets.SUPABASE_E2E_URL }}
+          SUPABASE_E2E_ANON_KEY: ${{ secrets.SUPABASE_E2E_ANON_KEY }}
+          SUPABASE_E2E_ADMIN_EMAIL: ${{ secrets.SUPABASE_E2E_ADMIN_EMAIL }}
+          SUPABASE_E2E_ADMIN_PASSWORD: ${{ secrets.SUPABASE_E2E_ADMIN_PASSWORD }}
+          SUPABASE_E2E_ENV: staging
+          SUPABASE_E2E_ALLOW_MUTATIONS: true
+          SUPABASE_E2E_CONFIRM: ${{ secrets.SUPABASE_E2E_CONFIRM }}
+        run: npm run admin-runtime-readiness
+      - name: Run controlled Admin E2E
+        env:
+          SUPABASE_E2E_URL: ${{ secrets.SUPABASE_E2E_URL }}
+          SUPABASE_E2E_ANON_KEY: ${{ secrets.SUPABASE_E2E_ANON_KEY }}
+          SUPABASE_E2E_ADMIN_EMAIL: ${{ secrets.SUPABASE_E2E_ADMIN_EMAIL }}
+          SUPABASE_E2E_ADMIN_PASSWORD: ${{ secrets.SUPABASE_E2E_ADMIN_PASSWORD }}
+          SUPABASE_E2E_ENV: staging
+          SUPABASE_E2E_ALLOW_MUTATIONS: true
+          SUPABASE_E2E_CONFIRM: ${{ secrets.SUPABASE_E2E_CONFIRM }}
+        run: npm run admin-workflow-e2e
