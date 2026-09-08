@@ -56,7 +56,7 @@ const detailReplacement = `function SermonDetail({ sermon, navigate }: { sermon?
   if (!sermon) return <ScrollView contentContainerStyle={styles.content}><SectionCard eyebrow="SERMON" title="No sermon selected" body="Return to the sermon library and choose a message." action="BACK TO SERMONS" onPress={()=>navigate('Sermons')} /></ScrollView>;
   return <ScrollView contentContainerStyle={styles.content}>
     <Pressable onPress={()=>navigate('Sermons')}><Text style={styles.eventLink}>‹ BACK TO SERMONS</Text></Pressable>
-    {sermon.image_url ? <Image source={{uri: sermon.image_url}} style={styles.cardImage} /> : null}
+    {sermon.image_url ? <Image source={{uri: sermon.image_url}} style={{ width: '100%', height: 220, borderRadius: 16, marginBottom: 16 }} /> : null}
     <Text style={styles.eyebrow}>SERMON</Text><Text style={styles.heading}>{sermon.title}</Text>
     {sermon.preached_at ? <Text style={styles.fieldHint}>{formatDate(sermon.preached_at)}</Text> : null}
     {sermon.description ? <Text style={styles.intro}>{sermon.description}</Text> : null}
