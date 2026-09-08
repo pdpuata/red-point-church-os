@@ -1,0 +1,56 @@
+name: One-time public app navigation cleanup
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    if: ${{ !contains(github.event.head_commit.message, '[ui-cleanup-done]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Simplify public navigation
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('App.tsx')
+          s = p.read_text()
+
+          old = "const navigate=(s:Screen)=>setScreen(s); const primary=['Home','Events','MyChurch','More'].includes(screen);"
+          new = "const navigate=(s:Screen)=>setScreen(s); const primary=['Home','Events','Sermons','More'].includes(screen);"
+          if old not in s:
+              raise SystemExit('Expected primary navigation declaration was not found')
+          s = s.replace(old, new, 1)
+
+          old = "    <Text style={styles.moreGroupTitle}>CHURCH LIFE</Text>\n    {item('My Red Point',()=>navigate('MyChurch'),'Your personal church experience, connection and next steps.')}"
+          new = "    <Text style={styles.moreGroupTitle}>WATCH & LISTEN</Text>\n    {item('Sermons',()=>navigate('Sermons'),'Find the latest message or search older sermons.')}\n    {item('Announcements',()=>navigate('Announcements'),'Important updates from the church.')}\n    <Text style={styles.moreGroupTitle}>CHURCH LIFE</Text>\n    {item('My Red Point',()=>navigate('MyChurch'),'Your personal church experience, connection and next steps.')}"
+          if old not in s:
+              raise SystemExit('Expected More menu section was not found')
+          s = s.replace(old, new, 1)
+
+          old = "    {item('Church Life',()=>navigate('Ministries'),'Find places to belong, serve and grow.')}\n    {item('Our Leaders',()=>navigate('Leadership'),'Meet the people who lead and serve our church.')}\n    {item('Announcements',()=>navigate('Announcements'),'Important updates from the church.')}"
+          new = "    {item('Church Life',()=>navigate('Ministries'),'Find places to belong, serve and grow.')}\n    {item('Our Leaders',()=>navigate('Leadership'),'Meet the people who lead and serve our church.')}"
+          if old not in s:
+              raise SystemExit('Expected More church-life items were not found')
+          s = s.replace(old, new, 1)
+
+          old = "      <Button label=\"GET DIRECTIONS\" onPress={()=>Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(next?.location || church.address)}`)} />\n    </View>"
+          new = "      <Button label=\"VIEW SUNDAY DETAILS\" secondary onPress={()=>navigate('Sunday')} />\n      <Button label=\"GET DIRECTIONS\" onPress={()=>Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(next?.location || church.address)}`)} />\n    </View>"
+          if old not in s:
+              raise SystemExit('Expected Sunday home card was not found')
+          s = s.replace(old, new, 1)
+
+          p.write_text(s)
+
+      - name: Commit cleanup
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add App.tsx
+          git commit -m "Simplify public app navigation [ui-cleanup-done]"
+          git push
