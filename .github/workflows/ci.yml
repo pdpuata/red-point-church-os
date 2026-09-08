@@ -3,6 +3,7 @@ name: Red Point Church App CI
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 jobs:
   verify:
@@ -22,13 +23,15 @@ jobs:
       - run: npm run admin-surface-check
       # Admin workflow: every mapped Admin CRUD/publish action must retain its source + RLS contract.
       - run: npm run admin-workflow-check
-      # Keep the aggregate Admin gate explicit so new Admin contract checks cannot silently fall out of CI.
+      # Aggregate Admin gate: keeps the complete Admin contract suite explicit in CI.
       - run: npm run verify:admin
       # v17: TypeScript, release consistency, operational-loop integrity, canonical source restoration,
       # Admin surface coverage, and Admin workflow contracts are mandatory CI gates.
 
   admin-e2e:
-    if: ${{ secrets.SUPABASE_E2E_URL != '' && secrets.SUPABASE_E2E_ANON_KEY != '' && secrets.SUPABASE_E2E_ADMIN_EMAIL != '' && secrets.SUPABASE_E2E_ADMIN_PASSWORD != '' && secrets.SUPABASE_E2E_CONFIRM == 'REDPOINT_TEST_DB' }}
+    # Runtime Supabase mutations are intentionally manual: they require a controlled staging database
+    # and GitHub Actions secrets. This prevents ordinary pushes/PRs from mutating a live project.
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     environment: staging
     steps:
