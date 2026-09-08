@@ -12,6 +12,7 @@
     "doctor": "expo-doctor",
     "release-check": "node scripts/release-check.mjs",
     "preflight": "node scripts/preflight.mjs",
+    "sermon:preflight": "node scripts/sermon-system-preflight.mjs",
     "build:android:preview": "npx eas build --platform android --profile preview",
     "build:android:production": "npx eas build --platform android --profile production",
     "build:ios:production": "npx eas build --platform ios --profile production",
