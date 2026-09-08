@@ -72,3 +72,5 @@ app = app.replace(/\{latestSermon\?\.youtube_url\s*\?\s*<Button label="WATCH MES
 
 fs.writeFileSync(appPath, app);
 console.log('Sermon rebuild patch applied.');
+
+// Triggered rebuild after TypeScript fix.
