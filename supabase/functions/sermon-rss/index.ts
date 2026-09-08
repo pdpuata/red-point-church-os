@@ -14,8 +14,9 @@ function adminDb() {
 
 function audioProxyUrl(req: Request, audioUrl: string) {
   const url = new URL(req.url);
-  url.search = "";
-  url.searchParams.set("audio", audioUrl);
+  url.pathname = '/functions/v1/sermon-rss';
+  url.search = '';
+  url.searchParams.set('audio', audioUrl);
   return url.toString();
 }
 
@@ -24,7 +25,6 @@ async function filterUnpublishedItems(xml: string) {
   const { data, error } = await db.from("sermons").select("source_guid,published").not("source_guid", "is", null);
   if (error) throw error;
   const statusByGuid = new Map((data || []).map((row: { source_guid: string; published: boolean }) => [row.source_guid, row.published]));
-
   return xml.replace(/<item\b[^>]*>[\s\S]*?<\/item>/gi, (item) => {
     const guidMatch = item.match(/<guid\b[^>]*>([\s\S]*?)<\/guid>/i);
     if (!guidMatch) return item;
@@ -43,25 +43,19 @@ function rewriteAudioUrls(xml: string, req: Request) {
       return full;
     }
   };
-
-  let result = xml.replace(/<enclosure\b([^>]*?)\burl=["']([^"']+)["']([^>]*)>/gi,
-    (full, before, url, after) => rewrite(full, before, url, after, "enclosure"));
-  result = result.replace(/<media:content\b([^>]*?)\burl=["']([^"']+)["']([^>]*)>/gi,
-    (full, before, url, after) => rewrite(full, before, url, after, "media:content"));
+  let result = xml.replace(/<enclosure\b([^>]*?)\burl=["']([^"']+)["']([^>]*)>/gi, (full, before, url, after) => rewrite(full, before, url, after, "enclosure"));
+  result = result.replace(/<media:content\b([^>]*?)\burl=["']([^"']+)["']([^>]*)>/gi, (full, before, url, after) => rewrite(full, before, url, after, "media:content"));
   return result;
 }
 
 async function proxyAudio(req: Request, audioUrl: string) {
   const upstreamUrl = new URL(audioUrl);
   if (!AUDIO_HOSTS.has(upstreamUrl.hostname)) return json({ error: "Audio source is not allowed." }, 403);
-
   const headers = new Headers();
   const range = req.headers.get("Range");
   if (range) headers.set("Range", range);
-
   const upstream = await fetch(upstreamUrl, { headers });
   if (!upstream.ok && upstream.status !== 206) return json({ error: `Audio source responded ${upstream.status}.` }, 502);
-
   const responseHeaders = new Headers(corsHeaders);
   responseHeaders.set("Content-Type", upstream.headers.get("Content-Type") || "audio/mp4");
   for (const name of ["Content-Length", "Content-Range", "Accept-Ranges", "Cache-Control", "ETag", "Last-Modified"]) {
@@ -79,7 +73,6 @@ Deno.serve(async (req) => {
     const audio = requestUrl.searchParams.get("audio");
     if (audio) return await proxyAudio(req, audio);
     if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
-
     const upstream = await fetch(RSS_URL, { headers: { Accept: "application/rss+xml, application/xml, text/xml" } });
     if (!upstream.ok) return json({ error: `Upstream RSS responded ${upstream.status}` }, 502);
     const filtered = await filterUnpublishedItems(await upstream.text());
