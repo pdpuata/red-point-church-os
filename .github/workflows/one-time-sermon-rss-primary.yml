@@ -1,0 +1,104 @@
+name: One-time sermon RSS primary
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Patch sermon library to use RSS as source of truth
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('App.tsx')
+          text = path.read_text()
+          original = text
+
+          text = text.replace(
+              "type Sermon = { id: string; title: string; description: string | null; preached_at: string | null; youtube_url: string | null; published: boolean; image_url?: string | null; source_url?: string | null; source?: 'database' | 'rss' };",
+              "type Sermon = { id: string; title: string; description: string | null; preached_at: string | null; youtube_url: string | null; published: boolean; image_url?: string | null; source_url?: string | null; source?: 'database' | 'rss'; audio_url?: string | null };"
+          )
+
+          text = text.replace(
+              "const SERMON_RSS_CACHE_KEY = 'red-point.latest-sermon-rss.v1';",
+              "const SERMON_RSS_CACHE_KEY = 'red-point.sermon-rss-library.v2';"
+          )
+
+          old_fn = re.compile(r"async function fetchLatestSermonFromRss\(\): Promise<RssSermon \| null> \{[\s\S]*?\n\}\n\n\n\nclass AppErrorBoundary", re.M)
+          new_fn = '''async function fetchSermonLibraryFromRss(): Promise<RssSermon[]> {
+            try {
+              const xml = await fetchSermonRssXml();
+              const items = extractRssItems(xml).sort((a, b) =>
+                +new Date(b.published_at || b.preached_at || 0) - +new Date(a.published_at || a.preached_at || 0)
+              );
+              if (items.length) await AsyncStorage.setItem(SERMON_RSS_CACHE_KEY, JSON.stringify(items));
+              return items;
+            } catch {
+              try {
+                const cached = await AsyncStorage.getItem(SERMON_RSS_CACHE_KEY);
+                if (!cached) return [];
+                const parsed = JSON.parse(cached);
+                return Array.isArray(parsed) ? parsed as RssSermon[] : [];
+              } catch { return []; }
+            }
+          }
+
+          async function fetchLatestSermonFromRss(): Promise<RssSermon | null> {
+            const library = await fetchSermonLibraryFromRss();
+            return library[0] || null;
+          }
+
+
+
+class AppErrorBoundary'''
+          text, n = old_fn.subn(new_fn, text, count=1)
+          if n != 1:
+              raise SystemExit('Could not locate RSS latest-sermon function block')
+
+          old_load = re.compile(r"const rssLatest=await fetchLatestSermonFromRss\(\);\s*if\(rssLatest\)\{setSermons\(current=>\{const db=current\.filter\(s=>s\.id!==rssLatest\.id\);return \[rssLatest,\.\.\.db\]\.sort\(\(a,b\)=>\+new Date\(b\.preached_at\|\|0\)-\+new Date\(a\.preached_at\|\|0\)\);\}\);\}", re.M)
+          new_load = "const rssLibrary=await fetchSermonLibraryFromRss();\n    if(rssLibrary.length){setSermons(rssLibrary);}"
+          text, n = old_load.subn(new_load, text, count=1)
+          if n != 1:
+              raise SystemExit('Could not locate sermon data-load RSS overlay block')
+
+          old_detail = re.compile(r"\{\(sermon\.youtube_url\|\|sermon\.source_url\)\?<Button label=\"WATCH MESSAGE\" onPress=\{\(\)=>Linking\.openURL\(\(sermon\.youtube_url\|\|sermon\.source_url\)!\)\}\s*/>:null\}", re.M)
+          new_detail = "{sermon.audio_url?<Button label=\"LISTEN TO SERMON\" onPress={()=>Linking.openURL(sermon.audio_url!)} />:null}{(sermon.youtube_url||sermon.source_url)?<Button label=\"OPEN SERMON PAGE\" secondary onPress={()=>Linking.openURL((sermon.youtube_url||sermon.source_url)!)} />:null}"
+          text, n = old_detail.subn(new_detail, text, count=1)
+          if n != 1:
+              raise SystemExit('Could not locate sermon detail action block')
+
+          if text == original:
+              raise SystemExit('No changes made')
+
+          path.write_text(text)
+          PY
+
+      - name: Verify source change
+        run: |
+          grep -n "fetchSermonLibraryFromRss" App.tsx
+          grep -n "LISTEN TO SERMON" App.tsx
+          npm ci
+          npx tsc --noEmit
+
+      - name: Commit and remove one-time workflow
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add App.tsx .github/workflows/one-time-sermon-rss-primary.yml
+          git rm .github/workflows/one-time-sermon-rss-primary.yml
+          git commit -m "Make sermon RSS the public sermon source of truth"
+          git push origin HEAD:main
