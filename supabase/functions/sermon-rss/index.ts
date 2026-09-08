@@ -1,7 +1,12 @@
-import { corsHeaders, json, optionsResponse } from "../_shared/cors.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.112.4";
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, range",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+function optionsResponse() { return new Response("ok", { headers: corsHeaders }); }
+function json(data: unknown, status = 200) { return new Response(JSON.stringify(data), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } }); }
 
-// Authoritative public sermon source: Red Point Church's official podcast RSS feed.
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.112.4";
 const RSS_URL = Deno.env.get("SERMON_RSS_URL") || "https://www.redpointchurch.com/pinetown-podcast-feed?format=rss";
 const AUDIO_HOSTS = new Set(["static1.squarespace.com", "static.squarespace.com"]);
 
@@ -11,15 +16,13 @@ function adminDb() {
   if (!url || !key) throw new Error("Supabase server configuration is incomplete.");
   return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 }
-
 function audioProxyUrl(req: Request, audioUrl: string) {
   const url = new URL(req.url);
-  url.pathname = '/functions/v1/sermon-rss';
-  url.search = '';
-  url.searchParams.set('audio', audioUrl);
+  url.pathname = "/functions/v1/sermon-rss";
+  url.search = "";
+  url.searchParams.set("audio", audioUrl);
   return url.toString();
 }
-
 async function filterUnpublishedItems(xml: string) {
   const db = adminDb();
   const { data, error } = await db.from("sermons").select("source_guid,published").not("source_guid", "is", null);
@@ -32,22 +35,18 @@ async function filterUnpublishedItems(xml: string) {
     return statusByGuid.get(guid) === false ? "" : item;
   });
 }
-
 function rewriteAudioUrls(xml: string, req: Request) {
   const rewrite = (full: string, prefix: string, url: string, suffix: string, tag: string) => {
     try {
       const upstream = new URL(url);
       if (!AUDIO_HOSTS.has(upstream.hostname)) return full;
       return `<${tag}${prefix}url="${audioProxyUrl(req, upstream.toString())}"${suffix}>`;
-    } catch {
-      return full;
-    }
+    } catch { return full; }
   };
   let result = xml.replace(/<enclosure\b([^>]*?)\burl=["']([^"']+)["']([^>]*)>/gi, (full, before, url, after) => rewrite(full, before, url, after, "enclosure"));
   result = result.replace(/<media:content\b([^>]*?)\burl=["']([^"']+)["']([^>]*)>/gi, (full, before, url, after) => rewrite(full, before, url, after, "media:content"));
   return result;
 }
-
 async function proxyAudio(req: Request, audioUrl: string) {
   const upstreamUrl = new URL(audioUrl);
   if (!AUDIO_HOSTS.has(upstreamUrl.hostname)) return json({ error: "Audio source is not allowed." }, 403);
@@ -65,7 +64,6 @@ async function proxyAudio(req: Request, audioUrl: string) {
   responseHeaders.set("Content-Disposition", "inline");
   return new Response(upstream.body, { status: upstream.status, headers: responseHeaders });
 }
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return optionsResponse();
   try {
