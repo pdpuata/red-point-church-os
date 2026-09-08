@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { supabase } from '../../lib/supabase';
-import { approveAssignmentCommunication, approveRosterRecommendation, createAssignmentCommunication, evaluateServiceTimeline, getCommunicationQueue, getMusicServices, getRosterRecommendations, getServiceAssignments, planRoster, rejectRosterRecommendation, runRosterAgent, saveRosterRecommendations, sendAssignmentCommunication } from './os';
+import { approveAssignmentCommunication, approveRosterRecommendation, createAssignmentCommunication, evaluateServiceTimeline, getCommunicationQueue, getMusicServices, getRosterRecommendations, planRoster, rejectRosterRecommendation, runRosterAgent, saveRosterRecommendations, sendAssignmentCommunication } from './os';
 import PeopleCapabilityLegacyOS from './PeopleCapabilityLegacyOS';
 
 const card = { borderWidth: 1, borderColor: '#e3e3e0', borderRadius: 16, padding: 16, marginBottom: 12, backgroundColor: '#fff' } as const;
@@ -38,28 +38,28 @@ export default function MusicBandsAdminOS({ onBack }: { onBack: () => void }) {
     if (!client) throw new Error('Supabase is not configured');
     const [r, a, c, sl] = await Promise.all([
       getRosterRecommendations(id),
-      getServiceAssignments(id),
+      client.from('service_assignments').select('id,user_id,person_id,responsibility,assignment_status,confirmation_status,notes,created_at').eq('service_id', id).order('responsibility'),
       getCommunicationQueue(),
       client.from('music_setlists').select('id,status,notes').eq('service_id', id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
     ]);
+    if (a.error) throw a.error;
     if (sl.error) throw sl.error;
     setRecommendations(r);
-    setAssignments(a);
+    setAssignments(a.data || []);
     setCommunications(c);
     setSetlist(sl.data || null);
     if (sl.data) {
       const { data: items, error: itemError } = await client.from('music_setlist_items').select('id,song_id,position,key_override,arrangement,notes').eq('setlist_id', sl.data.id).order('position');
       if (itemError) throw itemError;
-      setSetlistItems(items || []);
       const ids = (items || []).map((x: any) => x.song_id).filter(Boolean);
       if (ids.length) {
         const { data: songs, error: songError } = await client.from('music_songs').select('id,title,artist').in('id', ids);
         if (songError) throw songError;
         const songMap = Object.fromEntries((songs || []).map((s: any) => [s.id, s]));
         setSetlistItems((items || []).map((x: any) => ({ ...x, song: songMap[x.song_id] })));
-      }
+      } else setSetlistItems([]);
     } else setSetlistItems([]);
-    const personIds = (a || []).map((x: any) => x.person_id).filter(Boolean);
+    const personIds = (a.data || []).map((x: any) => x.person_id).filter(Boolean);
     if (personIds.length) {
       const { data: personRows, error: personError } = await client.from('music_people').select('id,display_name').in('id', personIds);
       if (personError) throw personError;
