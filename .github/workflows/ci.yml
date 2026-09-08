@@ -50,8 +50,8 @@ jobs:
               raise SystemExit(f'SermonDetail replacement matched {n} functions')
           p.write_text(s2)
           PY
-      - name: Remove one-time patch from workflow
-        run: git restore .github/workflows/ci.yml
+      - name: Restore permanent CI workflow
+        run: git checkout HEAD^ -- .github/workflows/ci.yml
       - run: npx expo-doctor
       - run: npm run release-check
       - run: npm run typecheck
