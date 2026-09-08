@@ -7,7 +7,6 @@ import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
 import * as ImagePicker from 'expo-image-picker';
-import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from './lib/supabase';
 import ChurchOSControlTower from './src/os/ChurchOSControlTower';
@@ -218,48 +217,20 @@ function Sermons({ sermons, navigate, selectSermon }: { sermons: Sermon[]; navig
     <Text style={styles.archiveHeading}>{query||year!=='ALL'?'SEARCH RESULTS':'SERMON ARCHIVE'} · {filtered.length}</Text>{filtered.length===0?<View style={styles.card}><Text style={styles.cardTitle}>{library.length?'No sermons found':'No sermons yet'}</Text><Text style={styles.cardBody}>{library.length?'Try a different search or year.':'New messages will appear here.'}</Text>{!library.length?<Button label="WATCH ON YOUTUBE" secondary onPress={()=>Linking.openURL(church.youtube)}/>:null}</View>:filtered.map(s=><Pressable key={s.id} accessibilityRole="button" accessibilityLabel={`Open sermon ${s.title}`} onPress={()=>{selectSermon(s);navigate('SermonDetail')}} style={({pressed})=>[styles.card,pressed&&styles.pressed]}>{s.image_url?<Image source={{uri:s.image_url}} style={styles.mediaImage}/>:null}<Text style={styles.eyebrow}>{s.preached_at?String(new Date(s.preached_at).getFullYear()):'RED POINT CHURCH'}</Text><Text style={styles.cardTitle}>{s.title}</Text><Text style={styles.searchMeta}>{s.preached_at?formatDate(s.preached_at):'Date not available'}</Text>{s.description?<Text style={styles.cardBody} numberOfLines={3}>{s.description}</Text>:null}<Text style={styles.eventLink}>VIEW SERMON ›</Text></Pressable>)}</ScrollView>;
 }
 
-function SermonAudioPlayer({ audioUrl, title }: { audioUrl: string; title: string }) {
-  const player = useAudioPlayer(audioUrl, { updateInterval: 500 });
-  const status = useAudioPlayerStatus(player);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setAudioModeAsync({ playsInSilentMode: true, shouldPlayInBackground: false }).catch(() => undefined);
-    return () => { try { player.pause(); } catch {} };
-  }, [player]);
-
-  const toggle = () => {
-    try { setError(null); if (status.playing) player.pause(); else player.play(); }
-    catch (e) { setError(e instanceof Error ? e.message : 'Could not play this sermon.'); }
-  };
-  const restart = () => {
-    try { player.seekTo(0); player.play(); setError(null); }
-    catch (e) { setError(e instanceof Error ? e.message : 'Could not restart this sermon.'); }
-  };
-  const duration = Number(status.duration || 0);
-  const current = Number(status.currentTime || 0);
-  const pct = duration > 0 ? Math.min(100, Math.max(0, (current / duration) * 100)) : 0;
-  const fmt = (seconds: number) => { const s = Math.max(0, Math.floor(seconds)); return String(Math.floor(s / 60)) + ':' + String(s % 60).padStart(2, '0'); };
-  return <View style={styles.card}>
-    <Text style={styles.eyebrow}>RED POINT AUDIO</Text>
-    <Text style={styles.cardTitle}>{title}</Text>
-    <Text style={styles.cardBody}>Audio from the Red Point Church sermon feed.</Text>
-    <View style={{ height: 8, backgroundColor: '#e5e5e5', borderRadius: 4, overflow: 'hidden', marginTop: 12, marginBottom: 8 }}><View style={{ width: (String(pct) + '%') as any, height: '100%', backgroundColor: '#111' }} /></View>
-    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}><Text style={styles.fieldHint}>{fmt(current)}</Text><Text style={styles.fieldHint}>{fmt(duration)}</Text></View>
-    <View style={{ flexDirection: 'row', gap: 10 }}><View style={{ flex: 1 }}><Button label={status.playing ? 'PAUSE' : 'PLAY SERMON'} onPress={toggle} /></View><View style={{ flex: 1 }}><Button label="RESTART" onPress={restart} secondary /></View></View>
-    {error ? <Text style={{ marginTop: 10, color: '#a00' }}>{error}</Text> : null}
-  </View>;
+function youtubeSearchUrl(title) {
+  return 'https://www.youtube.com/results?search_query=' + encodeURIComponent(title + ' Red Point Church');
 }
 
 function SermonDetail({ sermon, navigate }: { sermon?: Sermon; navigate:(s:Screen)=>void }) {
   if (!sermon) return <ScrollView contentContainerStyle={styles.content}><SectionCard eyebrow="SERMON" title="No sermon selected" body="Return to the sermon library and choose a message." action="BACK TO SERMONS" onPress={()=>navigate('Sermons')} /></ScrollView>;
+  const youtubeUrl = youtubeSearchUrl(sermon.title);
   return <ScrollView contentContainerStyle={styles.content}>
     <Pressable onPress={()=>navigate('Sermons')}><Text style={styles.eventLink}>‹ BACK TO SERMONS</Text></Pressable>
     {sermon.image_url ? <Image source={{uri: sermon.image_url}} style={{ width: '100%', height: 220, borderRadius: 16, marginBottom: 16 }} /> : null}
     <Text style={styles.eyebrow}>SERMON</Text><Text style={styles.heading}>{sermon.title}</Text>
     {sermon.preached_at ? <Text style={styles.fieldHint}>{formatDate(sermon.preached_at)}</Text> : null}
     {sermon.description ? <Text style={styles.intro}>{sermon.description}</Text> : null}
-    {sermon.audio_url ? <SermonAudioPlayer audioUrl={sermon.audio_url} title={sermon.title} /> : <SectionCard eyebrow="AUDIO" title="Audio unavailable" body="This sermon is listed by the Red Point Church website but no audio file was provided in its feed item." />}
+    <SectionCard eyebrow="VIDEO" title="Watch this sermon on YouTube" body="Red Point sermons are currently sourced from the church's YouTube channel." action="WATCH ON YOUTUBE" onPress={()=>Linking.openURL(youtubeUrl)} />
     {sermon.source_url ? <Pressable onPress={()=>Linking.openURL(sermon.source_url!)}><Text style={styles.eventLink}>OPEN SERMON ON RED POINT WEBSITE ›</Text></Pressable> : null}
   </ScrollView>;
 }
