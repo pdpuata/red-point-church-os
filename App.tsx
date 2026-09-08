@@ -87,12 +87,14 @@ function extractRssItems(xml: string): RssSermon[] {
 async function fetchSermonRssXml(): Promise<string> {
   // Web browsers cannot fetch the feed directly: the church website sends no CORS headers.
   // On web, proxy through the sermon-rss edge function; native fetches the feed directly.
-  if (Platform.OS === 'web' && supabase) {
-    const { data, error } = await supabase.functions.invoke('sermon-rss', { body: {} });
-    if (error) throw error;
-    const xml = (data as any)?.xml;
+  if (Platform.OS === 'web') {
+    const proxyUrl = 'https://gvyqluwtzujefernhvfd.supabase.co/functions/v1/sermon-rss';
+    const response = await fetch(proxyUrl, { method: 'POST', headers: { Accept: 'application/json', 'Content-Type': 'application/json' }, body: '{}' });
+    if (!response.ok) throw new Error(`RSS proxy ${response.status}`);
+    const data = await response.json();
+    const xml = data?.xml;
     if (typeof xml === 'string' && xml.length) return xml;
-    throw new Error('RSS proxy unavailable');
+    throw new Error('RSS proxy returned no feed');
   }
   const response = await fetch(church.sermonRss, { headers: { Accept: 'application/rss+xml, application/xml, text/xml' } });
   if (!response.ok) throw new Error(`RSS ${response.status}`);
@@ -104,7 +106,8 @@ async function fetchSermonLibraryFromRss(): Promise<RssSermon[]> {
     const items = extractRssItems(xml).sort((a, b) => +new Date(b.published_at || b.preached_at || 0) - +new Date(a.published_at || a.preached_at || 0));
     if (items.length) await AsyncStorage.setItem(SERMON_RSS_CACHE_KEY, JSON.stringify(items));
     return items;
-  } catch {
+  } catch (error) {
+    console.warn('Red Point sermon RSS refresh failed', error);
     try {
       const cached = await AsyncStorage.getItem(SERMON_RSS_CACHE_KEY);
       const parsed = cached ? JSON.parse(cached) : [];
