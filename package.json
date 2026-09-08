@@ -28,8 +28,7 @@
     "check:live": "node scripts/live-production-check.mjs",
     "setup:production": "node scripts/setup-production.mjs",
     "verify:setup": "npm run preflight && npm run release-check && npm run backend:check && npm run setup:production",
-    "backend:launch-gate": "node scripts/backend-launch-gate.mjs",
-    "verify:backend-launch": "npm run backend:check && npm run backend:launch-gate",
+    "backend:launch-gate": "npm run backend:check && npm run backend:launch-gate",
     "guided:deploy": "node scripts/guided-deploy.mjs",
     "verify:deployment": "node scripts/guided-deploy.mjs --check",
     "admin-agent": "node scripts/admin-agent.mjs",
@@ -60,5 +59,10 @@
   "devDependencies": {
     "@types/react": "~19.2.4",
     "typescript": "~6.0.3"
+  },
+  "expo": {
+    "install": {
+      "exclude": ["expo"]
+    }
   }
 }
