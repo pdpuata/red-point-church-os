@@ -7,6 +7,10 @@ on:
   schedule:
     - cron: '*/5 * * * *'
 
+concurrency:
+  group: sermon-rebuild
+  cancel-in-progress: false
+
 jobs:
   rebuild:
     runs-on: ubuntu-latest
@@ -33,7 +37,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add App.tsx package.json package-lock.json
-          git diff --cached --quiet && exit 0
+          if git diff --cached --quiet; then
+            echo "No sermon rebuild changes to commit."
+            exit 0
+          fi
           git commit -m "feat: rebuild sermon playback from Red Point RSS"
           git push origin main
       - name: Remove temporary workflow
