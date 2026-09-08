@@ -37,10 +37,10 @@
     "verify:admin": "npm run admin-surface-check && npm run admin-agent -- plan && npm run admin-workflow-check && npm run release-check && npm run typecheck",
     "ai:loop": "node scripts/ai-operational-loop.mjs",
     "ai:plan": "npm run ai:loop",
-    "admin-workflow-e2e": "node scripts/admin-workflow-e2e.mjs",
+    "admin-workflow-e2e": "node --env-file=.env scripts/admin-workflow-e2e.mjs",
     "admin-workflow-check": "node scripts/admin-workflow-verifier.mjs",
-    "admin-runtime-readiness": "node scripts/admin-runtime-readiness.mjs",
-    "admin-workflow-e2e:check": "node scripts/admin-workflow-e2e.mjs --check"
+    "admin-runtime-readiness": "node --env-file=.env scripts/admin-runtime-readiness.mjs",
+    "admin-workflow-e2e:check": "node --env-file=.env scripts/admin-workflow-e2e.mjs --check"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.2.0",
