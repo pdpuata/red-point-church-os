@@ -1,58 +1,34 @@
 import React, { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import ElderDashboard, { ElderDashboardAction } from './ElderDashboard';
-import BandsOS from './BandsOS';
+import MusicBandsAdminOS from './MusicBandsAdminOS';
 import PeopleCapabilityLegacyOS from './PeopleCapabilityLegacyOS';
-import SongSelectMusicOS from './SongSelectMusicOS';
-import AIOperatingModelOS from './AIOperatingModelOS';
-
-type Area = 'music' | 'visitors' | 'sunday' | null;
-
-const areaMeta = {
-  music: { title: 'MUSIC & BANDS', body: 'People, bands, roster and worship readiness' },
-  visitors: { title: 'PEOPLE', body: 'Visitors and people who need a response' },
-  sunday: { title: 'SUNDAY', body: 'Sunday readiness and operating controls' },
-} as const;
 
 export default function PeopleCapabilityOS() {
-  const [area, setArea] = useState<Area>(null);
+  const [area, setArea] = useState<ElderDashboardAction | null>(null);
 
   const openArea = (action: ElderDashboardAction) => {
     if (action === 'music' || action === 'visitors' || action === 'sunday') setArea(action);
   };
 
-  return <View style={{ flex: 1 }}>
-    <View style={{ position: 'relative', zIndex: 100, elevation: 100 }}>
-      <ElderDashboard onAction={openArea} />
+  if (area === 'music') return <MusicBandsAdminOS onBack={() => setArea(null)} />;
+
+  if (area === 'visitors') return <View style={{ flex: 1 }}>
+    <Pressable onPress={() => setArea(null)} style={{ marginHorizontal: 20, marginTop: 8, marginBottom: 4 }}><Text style={{ fontSize: 12, fontWeight: '800', textDecorationLine: 'underline' }}>‹ ADMIN HOME</Text></Pressable>
+    <PeopleCapabilityLegacyOS />
+  </View>;
+
+  if (area === 'sunday') return <View style={{ flex: 1 }}>
+    <Pressable onPress={() => setArea(null)} style={{ marginHorizontal: 20, marginTop: 8, marginBottom: 4 }}><Text style={{ fontSize: 12, fontWeight: '800', textDecorationLine: 'underline' }}>‹ ADMIN HOME</Text></Pressable>
+    <View style={{ marginHorizontal: 20, borderWidth: 1, borderColor: '#e3e3e0', borderRadius: 16, padding: 16, backgroundColor: '#fff' }}>
+      <Text style={{ fontSize: 12, fontWeight: '800', letterSpacing: 1.2, color: '#666' }}>SUNDAY</Text>
+      <Text style={{ fontSize: 26, fontWeight: '800', marginTop: 4 }}>Sunday readiness</Text>
+      <Text style={{ color: '#555', fontSize: 15, lineHeight: 22, marginTop: 6 }}>Use the Control Tower's Sunday operating loop to inspect the next service, surface blockers and run the human-approved readiness workflow.</Text>
+      <Text style={{ color: '#777', marginTop: 12, lineHeight: 20 }}>The detailed operating controls remain in the Control Tower so there is one source of truth rather than a second, disconnected Sunday dashboard.</Text>
     </View>
+  </View>;
 
-    {area ? <View style={{ marginHorizontal: 20, marginBottom: 14, borderWidth: 1, borderColor: '#e3e3e0', borderRadius: 14, padding: 14, backgroundColor: '#f7f7f4' }}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 11, fontWeight: '800', letterSpacing: 1, color: '#666' }}>CHURCH AREA</Text>
-          <Text style={{ fontSize: 19, fontWeight: '800', marginTop: 3 }}>{areaMeta[area].title}</Text>
-          <Text style={{ fontSize: 14, color: '#666', marginTop: 2 }}>{areaMeta[area].body}</Text>
-        </View>
-        <Pressable accessibilityRole="button" accessibilityLabel="Back to all church areas" onPress={() => setArea(null)} hitSlop={8} style={({ pressed }) => ({ borderWidth: 1, borderColor: '#171717', borderRadius: 10, paddingVertical: 9, paddingHorizontal: 11, opacity: pressed ? 0.6 : 1 })}>
-          <Text style={{ fontSize: 11, fontWeight: '800' }}>ALL AREAS</Text>
-        </Pressable>
-      </View>
-    </View> : null}
-
-    {(!area || area === 'music') ? <>
-      <AIOperatingModelOS />
-      <SongSelectMusicOS />
-      <BandsOS />
-    </> : null}
-
-    {(!area || area === 'visitors') ? <PeopleCapabilityLegacyOS /> : null}
-
-    {area === 'sunday' ? <View style={{ marginHorizontal: 20, marginBottom: 14, borderWidth: 1, borderColor: '#e3e3e0', borderRadius: 18, padding: 16 }}>
-      <Text style={{ fontSize: 18, fontWeight: '800' }}>Sunday readiness</Text>
-      <Text style={{ color: '#666', marginTop: 5, lineHeight: 21 }}>Sunday operating controls are available in the Control Tower below.</Text>
-      <Pressable accessibilityRole="button" accessibilityLabel="Return to Control Tower" onPress={() => setArea(null)} style={{ marginTop: 12, borderWidth: 1, borderColor: '#171717', borderRadius: 10, padding: 11, alignItems: 'center' }}>
-        <Text style={{ fontWeight: '800' }}>OPEN CONTROL TOWER</Text>
-      </Pressable>
-    </View> : null}
+  return <View style={{ flex: 1 }}>
+    <ElderDashboard onAction={openArea} />
   </View>;
 }
