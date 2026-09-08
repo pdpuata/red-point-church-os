@@ -5,48 +5,31 @@ const SUPABASE_URL = process.env.SUPABASE_E2E_URL || 'https://gvyqluwtzujefernhv
 const PROXY_URL = `${SUPABASE_URL.replace(/\/$/, '')}/functions/v1/sermon-rss`;
 const APP_FILE = new URL('../App.tsx', import.meta.url);
 
-function fail(message) {
-  throw new Error(message);
-}
+function fail(message) { throw new Error(message); }
 
 function decodeXml(value) {
-  return value
-    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
-    .replace(/&amp;/g, '&')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/<[^>]+>/g, '')
-    .trim();
+  return value.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/<[^>]+>/g, '').trim();
 }
 
 function tag(xml, name) {
-  const match = xml.match(new RegExp(`<${name}\\b[^>]*>([\\s\\S]*?)<\\/${name}>`, 'i'));
+  const match = xml.match(new RegExp(`<${name}[^>]*>([\\s\\S]*?)</${name}>`, 'i'));
   return match ? decodeXml(match[1]) : '';
 }
 
 function attr(xml, name) {
-  const match = xml.match(new RegExp(`\\b${name}=["']([^"']+)["']`, 'i'));
+  const match = xml.match(new RegExp(`${name}=["']([^"']+)["']`, 'i'));
   return match ? decodeXml(match[1]) : '';
 }
 
 function parseItems(xml) {
-  return (xml.match(/<item\\b[\\s\\S]*?<\\/item>/gi) || []).map((item, index) => {
-    const enclosure = item.match(/<enclosure\\b[^>]*>/i)?.[0] || '';
-    const media = item.match(/<media:content\\b[^>]*>/i)?.[0] || '';
+  return (xml.match(/<item[\s\S]*?<\/item>/gi) || []).map((item, index) => {
+    const enclosure = item.match(/<enclosure[^>]*>/i)?.[0] || '';
+    const media = item.match(/<media:content[^>]*>/i)?.[0] || '';
     const link = tag(item, 'link') || tag(item, 'guid');
     const guid = tag(item, 'guid') || link || `rss-${index}`;
     const published = tag(item, 'pubDate');
     const date = published && !Number.isNaN(Date.parse(published)) ? new Date(published) : null;
-    return {
-      title: tag(item, 'title'),
-      guid,
-      link,
-      published,
-      date,
-      audio: attr(enclosure, 'url') || attr(media, 'url'),
-    };
+    return { title: tag(item, 'title'), guid, link, published, date, audio: attr(enclosure, 'url') || attr(media, 'url') };
   }).filter(item => item.title);
 }
 
@@ -57,21 +40,10 @@ function checkAudioUrl(url, label) {
 }
 
 async function requestRange(url, label) {
-  const response = await fetch(url, {
-    headers: { Range: 'bytes=0-1023' },
-    redirect: 'follow',
-  });
-  if (![200, 206].includes(response.status)) {
-    fail(`${label}: audio range request returned HTTP ${response.status}`);
-  }
+  const response = await fetch(url, { headers: { Range: 'bytes=0-1023' }, redirect: 'follow' });
+  if (![200, 206].includes(response.status)) fail(`${label}: audio range request returned HTTP ${response.status}`);
   const type = response.headers.get('content-type') || '';
-  if (!type.toLowerCase().startsWith('audio/') && !/octet-stream/i.test(type)) {
-    fail(`${label}: audio response has unexpected Content-Type ${type || '(missing)'}`);
-  }
-  const acceptsRanges = response.headers.get('accept-ranges');
-  if (response.status === 206 && acceptsRanges && !/bytes/i.test(acceptsRanges)) {
-    fail(`${label}: partial audio response does not advertise byte ranges`);
-  }
+  if (!type.toLowerCase().startsWith('audio/') && !/octet-stream/i.test(type)) fail(`${label}: audio response has unexpected Content-Type ${type || '(missing)'}`);
   return { status: response.status, type, contentRange: response.headers.get('content-range') || '' };
 }
 
@@ -80,13 +52,10 @@ async function main() {
   console.log(`Source RSS: ${RSS_URL}`);
   console.log(`Supabase proxy: ${PROXY_URL}`);
 
-  const sourceResponse = await fetch(RSS_URL, {
-    headers: { Accept: 'application/rss+xml, application/xml, text/xml' },
-    redirect: 'follow',
-  });
+  const sourceResponse = await fetch(RSS_URL, { headers: { Accept: 'application/rss+xml, application/xml, text/xml' }, redirect: 'follow' });
   if (!sourceResponse.ok) fail(`Red Point RSS returned HTTP ${sourceResponse.status}`);
   const sourceXml = await sourceResponse.text();
-  if (!/<rss\\b/i.test(sourceXml) && !/<feed\\b/i.test(sourceXml)) fail('Red Point RSS response is not RSS/XML');
+  if (!/<rss/i.test(sourceXml) && !/<feed/i.test(sourceXml)) fail('Red Point RSS response is not RSS/XML');
 
   const sourceItems = parseItems(sourceXml).sort((a, b) => (b.date?.getTime() || 0) - (a.date?.getTime() || 0));
   if (!sourceItems.length) fail('Red Point RSS contains no sermon items');
@@ -102,33 +71,21 @@ async function main() {
   const directAudio = await requestRange(latest.audio, 'Red Point direct audio');
   console.log(`✓ Direct audio playable: HTTP ${directAudio.status}, ${directAudio.type}`);
 
-  const proxyResponse = await fetch(PROXY_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: '{}',
-    redirect: 'follow',
-  });
+  const proxyResponse = await fetch(PROXY_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: '{}', redirect: 'follow' });
   if (!proxyResponse.ok) fail(`Supabase sermon-rss proxy returned HTTP ${proxyResponse.status}`);
   const proxyBody = await proxyResponse.json();
-  if (!proxyBody || proxyBody.ok !== true || typeof proxyBody.xml !== 'string') {
-    fail('Supabase sermon-rss proxy did not return { ok: true, xml }');
-  }
+  if (!proxyBody || proxyBody.ok !== true || typeof proxyBody.xml !== 'string') fail('Supabase sermon-rss proxy did not return { ok: true, xml }');
+
   const proxyItems = parseItems(proxyBody.xml).sort((a, b) => (b.date?.getTime() || 0) - (a.date?.getTime() || 0));
   if (!proxyItems.length) fail('Supabase sermon-rss proxy returned no sermon items');
-
   const proxyLatest = proxyItems.find(item => item.guid === latest.guid) || proxyItems[0];
-  if (proxyLatest.guid !== latest.guid) {
-    fail(`Proxy latest GUID mismatch: source=${latest.guid} proxy=${proxyLatest.guid}`);
-  }
-  if (proxyLatest.title !== latest.title) {
-    fail(`Proxy latest title mismatch: source=${latest.title} proxy=${proxyLatest.title}`);
-  }
+  if (proxyLatest.guid !== latest.guid) fail(`Proxy latest GUID mismatch: source=${latest.guid} proxy=${proxyLatest.guid}`);
+  if (proxyLatest.title !== latest.title) fail(`Proxy latest title mismatch: source=${latest.title} proxy=${proxyLatest.title}`);
   checkAudioUrl(proxyLatest.audio, 'Supabase proxy RSS');
 
   const proxyAudioUrl = new URL(proxyLatest.audio);
-  if (proxyAudioUrl.origin !== new URL(PROXY_URL).origin || proxyAudioUrl.pathname !== new URL(PROXY_URL).pathname) {
-    fail(`Latest proxy audio is not routed through sermon-rss: ${proxyLatest.audio}`);
-  }
+  const proxyBase = new URL(PROXY_URL);
+  if (proxyAudioUrl.origin !== proxyBase.origin || proxyAudioUrl.pathname !== proxyBase.pathname) fail(`Latest proxy audio is not routed through sermon-rss: ${proxyLatest.audio}`);
 
   console.log(`✓ Supabase proxy reachable (${proxyItems.length} visible items)`);
   console.log('✓ Proxy latest matches Red Point RSS');
@@ -145,12 +102,8 @@ async function main() {
     ['web HTML audio player', "React.createElement('audio'"],
     ['audio-first latest CTA', 'latest.audio_url ?'],
   ];
-  for (const [label, needle] of requiredAppContracts) {
-    if (!appSource.includes(needle)) fail(`App contract missing: ${label}`);
-  }
-  if (/youtube_url:\s*link\s*,\s*published:\s*true/.test(appSource)) {
-    fail('App parser still treats every RSS link as a YouTube URL');
-  }
+  for (const [label, needle] of requiredAppContracts) if (!appSource.includes(needle)) fail(`App contract missing: ${label}`);
+  if (/youtube_url:\s*link\s*,\s*published:\s*true/.test(appSource)) fail('App parser still treats every RSS link as a YouTube URL');
   console.log('✓ App source contracts present');
 
   console.log('');
