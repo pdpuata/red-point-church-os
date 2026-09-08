@@ -1,0 +1,38 @@
+name: Red Point Church Admin E2E Trigger
+
+on:
+  push:
+    branches:
+      - ci/admin-e2e
+
+jobs:
+  admin-e2e:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Validate controlled runtime boundary
+        env:
+          SUPABASE_E2E_URL: ${{ secrets.SUPABASE_E2E_URL }}
+          SUPABASE_E2E_ANON_KEY: ${{ secrets.SUPABASE_E2E_ANON_KEY }}
+          SUPABASE_E2E_ADMIN_EMAIL: ${{ secrets.SUPABASE_E2E_ADMIN_EMAIL }}
+          SUPABASE_E2E_ADMIN_PASSWORD: ${{ secrets.SUPABASE_E2E_ADMIN_PASSWORD }}
+          SUPABASE_E2E_ENV: staging
+          SUPABASE_E2E_ALLOW_MUTATIONS: true
+          SUPABASE_E2E_CONFIRM: ${{ secrets.SUPABASE_E2E_CONFIRM }}
+        run: npm run admin-runtime-readiness
+      - name: Run controlled Admin E2E
+        env:
+          SUPABASE_E2E_URL: ${{ secrets.SUPABASE_E2E_URL }}
+          SUPABASE_E2E_ANON_KEY: ${{ secrets.SUPABASE_E2E_ANON_KEY }}
+          SUPABASE_E2E_ADMIN_EMAIL: ${{ secrets.SUPABASE_E2E_ADMIN_EMAIL }}
+          SUPABASE_E2E_ADMIN_PASSWORD: ${{ secrets.SUPABASE_E2E_ADMIN_PASSWORD }}
+          SUPABASE_E2E_ENV: staging
+          SUPABASE_E2E_ALLOW_MUTATIONS: true
+          SUPABASE_E2E_CONFIRM: ${{ secrets.SUPABASE_E2E_CONFIRM }}
+        run: npm run admin-workflow-e2e
