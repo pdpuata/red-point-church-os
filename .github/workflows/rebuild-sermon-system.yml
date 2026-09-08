@@ -1,8 +1,6 @@
 name: Rebuild sermon system from Red Point website
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -14,30 +12,26 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-
+      - name: Install dependencies
+        run: npm ci
       - name: Install compatible Expo audio package
-        run: npx expo install expo-audio
-
+        run: npm install --save-exact expo-audio@~57.0.4
       - name: Rewrite sermon system
         run: node .github/rebuild-sermons.mjs
-
       - name: Typecheck
         run: npx tsc --noEmit
-
       - name: Commit sermon rebuild
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add App.tsx package.json package-lock.json
           git diff --cached --quiet && exit 0
-          git commit -m "Rebuild sermons from Red Point website audio"
+          git commit -m "feat: rebuild sermon playback from Red Point RSS"
           git push origin main
-
       - name: Remove temporary workflow
         run: |
           git rm .github/workflows/rebuild-sermon-system.yml .github/rebuild-sermons.mjs
