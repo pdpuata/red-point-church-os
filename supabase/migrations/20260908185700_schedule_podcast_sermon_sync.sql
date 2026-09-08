@@ -11,13 +11,13 @@ begin
     perform cron.schedule(
       'sync-podcast-sermons-every-minute',
       '* * * * *',
-      $$
+      $cron$
         select net.http_post(
           url := 'https://gvyqluwtzujefernhvfd.supabase.co/functions/v1/sync-podcast-sermons-public',
           headers := '{"Content-Type":"application/json"}'::jsonb,
           timeout_milliseconds := 20000
         );
-      $$
+      $cron$
     );
   end if;
 end $$;
