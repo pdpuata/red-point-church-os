@@ -47,6 +47,7 @@ jobs:
           pattern = r"const rssLatest=await fetchLatestSermonFromRss\(\);\s*if\(rssLatest\)\{setSermons\(current=>\{const db=current\.filter\(s=>s\.id!==rssLatest\.id\);return \[rssLatest,\.\.\.db\]\.sort\(\(a,b\)=>\+new Date\(b\.preached_at\|\|0\)-\+new Date\(a\.preached_at\|\|0\)\);\}\);\}"
           s, n = re.subn(pattern, "const rssLibrary=await fetchSermonLibraryFromRss();\n    if(rssLibrary.length){setSermons(rssLibrary);}", s, count=1)
           if n != 1: raise SystemExit('RSS overlay block not found')
+          s = s.replace("if(failed.length===5 && !rssLatest)throw new Error('All church data requests failed');", "if(failed.length===5 && !rssLibrary.length)throw new Error('All church data requests failed');")
           pattern = r"\{\(sermon\.youtube_url\|\|sermon\.source_url\)\?<Button label=\"WATCH MESSAGE\" onPress=\{\(\)=>Linking\.openURL\(\(sermon\.youtube_url\|\|sermon\.source_url\)!\)\}\s*/>:null\}"
           s, n = re.subn(pattern, "{sermon.audio_url?<Button label=\"LISTEN TO SERMON\" onPress={()=>Linking.openURL(sermon.audio_url!)} />:null}{(sermon.youtube_url||sermon.source_url)?<Button label=\"OPEN SERMON PAGE\" secondary onPress={()=>Linking.openURL((sermon.youtube_url||sermon.source_url)!)} />:null}", s, count=1)
           if n != 1: raise SystemExit('Sermon detail block not found')
