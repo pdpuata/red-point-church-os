@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <title>Red Point Church — This Sunday</title>
+  <style>
+    :root { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #171717; background: #f7f7f5; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    main { max-width: 680px; margin: 0 auto; padding: 28px 18px 48px; }
+    .brand { font-weight: 800; letter-spacing: .02em; font-size: 18px; }
+    h1 { font-size: clamp(34px, 9vw, 52px); line-height: 1.02; margin: 28px 0 12px; }
+    .lead { font-size: 21px; line-height: 1.45; margin: 0 0 24px; }
+    .card { background: #fff; border: 1px solid #deded9; border-radius: 20px; padding: 22px; margin: 14px 0; box-shadow: 0 2px 8px rgba(0,0,0,.04); }
+    .card h2 { margin: 0 0 8px; font-size: 27px; }
+    .card p { font-size: 18px; line-height: 1.45; margin: 0 0 16px; }
+    .button { display: block; width: 100%; border-radius: 14px; padding: 19px 18px; text-align: center; text-decoration: none; font-size: 21px; font-weight: 800; background: #171717; color: #fff; }
+    .button.disabled { background: #e9e9e5; color: #777; pointer-events: none; }
+    .info { background: #f0f0ec; }
+    .help { font-size: 17px; line-height: 1.5; margin-top: 24px; }
+    footer { margin-top: 32px; color: #666; font-size: 15px; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="brand">RED POINT CHURCH</div>
+    <h1>This Sunday</h1>
+    <p class="lead">We meet at <strong>9:00 AM</strong>. Use the options below for what you need.</p>
+
+    <section class="card">
+      <h2>🍽️ Order a meal</h2>
+      <p>After the service, a meal may be available. When the current Quicket link is connected, this button will take you directly to it.</p>
+      <a class="button disabled" href="#">Quicket link not connected yet</a>
+    </section>
+
+    <section class="card">
+      <h2>👋 Coming this Sunday?</h2>
+      <p>You do not need an account. This first version simply lets you confirm that you are coming.</p>
+      <button class="button" type="button" onclick="confirmAttendance()">YES, I'M COMING</button>
+      <p id="confirmation" style="display:none; margin:16px 0 0; font-weight:700;">✓ You're all done. See you Sunday!</p>
+    </section>
+
+    <section class="card info">
+      <h2>ℹ️ Sunday information</h2>
+      <p>Red Point Church meets at 9:00 AM. Further Sunday information can be added here as this communication system is connected to the church's live information.</p>
+    </section>
+
+    <p class="help"><strong>Need help?</strong><br>If you are unsure what to do, please ask someone you trust at church. You do not need to install an app or create an account.</p>
+
+    <footer>Red Point Church · To know Jesus</footer>
+  </main>
+  <script>
+    function confirmAttendance() {
+      document.getElementById('confirmation').style.display = 'block';
+    }
+  </script>
+</body>
+</html>
