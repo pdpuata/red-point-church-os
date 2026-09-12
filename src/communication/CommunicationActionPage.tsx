@@ -65,10 +65,10 @@ export default function CommunicationActionPage({
         <ActionCard
           emoji="🍽️"
           title={meal.label || 'Order a meal'}
-          body={meal.priceLabel ? `${meal.priceLabel}\nPayment is handled securely by Quicket.` : 'Payment is handled securely by Quicket.'}
+          body={meal.quicketUrl ? (meal.priceLabel ? `${meal.priceLabel}\nPayment is handled securely by Quicket.` : 'Payment is handled securely by Quicket.') : 'The meal ordering link will appear here when the current Quicket event is connected.'}
           onPress={() => openExternal(meal.quicketUrl, 'meal')}
-          disabled={mealBusy}
-          buttonLabel={mealBusy ? 'OPENING QUICKET…' : 'ORDER A MEAL'}
+          disabled={!meal.quicketUrl || mealBusy}
+          buttonLabel={mealBusy ? 'OPENING QUICKET…' : meal.quicketUrl ? 'ORDER A MEAL' : 'QUICKET LINK NOT SET'}
         />
       ) : null}
 
