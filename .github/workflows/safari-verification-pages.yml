@@ -1,0 +1,38 @@
+name: Exact candidate Safari verification
+on:
+  push:
+    paths: [".github/workflows/safari-verification-pages.yml"]
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: safari-verification-pages
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Materialize exact GitLab binary assets
+        run: |
+          for f in assets/icon.png assets/adaptive-icon.png assets/app-icon.png assets/splash-icon.png; do
+            base64 -d "$f" > "$f.bin" && mv "$f.bin" "$f"
+          done
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Export exact candidate for web
+        run: npx expo export --platform web
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - name: Deploy verification build
+        id: deployment
+        uses: actions/deploy-pages@v4
