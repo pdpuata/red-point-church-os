@@ -48,3 +48,4 @@ jobs:
       - run: npx expo prebuild --platform ios --clean --no-install
       - run: npx pod-install
       - run: xcodebuild -workspace ios/RedPointChurch.xcworkspace -scheme RedPointChurch -configuration Release -sdk iphonesimulator -derivedDataPath build-ios CODE_SIGNING_ALLOWED=NO build
+# rerun aligned to final 808a7e9e config
