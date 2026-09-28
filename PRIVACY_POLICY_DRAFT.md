@@ -1,6 +1,6 @@
 # Red Point Church App — Privacy Policy Draft
 
-**Effective date:** TODO
+**Effective date:** TODO — set immediately before public release
 
 Red Point Church respects your privacy. This policy explains what information the Red Point Church mobile app may receive and why.
 
@@ -11,7 +11,7 @@ If you use the visitor form, the app may send your name, contact details and opt
 If you enable notifications, the app uses a device push token so Red Point Church can send church updates. You can disable notifications in your device settings.
 
 ## Church content
-Events, announcements, sermons, leaders and other church information are retrieved from Red Point Church's configured backend services.
+Events, announcements, sermons, leaders and other church information are retrieved from Red Point Church's backend services.
 
 ## Photos
 Authorised church staff may upload images for church content. Photo-library access is used for that staff-only content-management purpose.
@@ -19,8 +19,11 @@ Authorised church staff may upload images for church content. Photo-library acce
 ## Information we do not request through the visitor form
 Do not submit passwords, financial information, identity numbers or other sensitive personal information through the visitor form.
 
+## Service providers
+The app uses service providers to operate its core functions. The current production architecture includes Supabase for database, authentication, storage and server functions; Expo/EAS and the Expo Push Service for app builds and push delivery; Firebase Cloud Messaging for Android push transport; YouTube for sermon/video links and synchronisation; and Resend when visitor follow-up email delivery is enabled.
+
 ## Sharing
-Visitor information is used by Red Point Church for follow-up and church communication. It should not be sold. Any third-party services used to operate the app should be named in the final published policy.
+Visitor information is used by Red Point Church for follow-up and church communication. Red Point Church should not sell this information. Service providers receive only the information required to provide the relevant technical service.
 
 ## Retention
 Red Point Church should retain visitor submissions only for as long as reasonably necessary for follow-up and church administration, subject to its internal policies and applicable law.
