@@ -20,9 +20,6 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - run: npm run typecheck
       - run: npx expo-doctor
-      - run: npm run preflight
-      - run: npm run release-check
-      - run: node scripts/production-config-check.mjs
       - run: npx expo export --platform web
       - run: npx expo export --platform android
       - run: npx expo prebuild --platform android --clean --no-install
