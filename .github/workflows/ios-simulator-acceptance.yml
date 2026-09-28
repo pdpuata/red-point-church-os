@@ -1,0 +1,45 @@
+name: iOS simulator acceptance
+on:
+  push:
+    paths: [".github/workflows/ios-simulator-acceptance.yml"]
+jobs:
+  simulator:
+    runs-on: macos-26
+    env:
+      EXPO_PUBLIC_SUPABASE_URL: https://gvyqluwtzujefernhvfd.supabase.co
+      EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_YnajoirMWnSwa_IOrBB2Tg_vEpy5ReX
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22, cache: npm}
+      - run: npm ci --no-audit --no-fund
+      - run: npx expo prebuild --platform ios --clean --no-install
+      - run: npx pod-install
+      - name: Build simulator release
+        run: xcodebuild -workspace ios/RedPointChurch.xcworkspace -scheme RedPointChurch -configuration Release -sdk iphonesimulator -derivedDataPath build-ios CODE_SIGNING_ALLOWED=NO build
+      - name: Boot, install and launch
+        run: |
+          UDID=$(python3 - <<'PY'
+          import json,subprocess
+          d=json.loads(subprocess.check_output(["xcrun","simctl","list","devices","available","-j"]))
+          for runtime,devices in d["devices"].items():
+              for x in devices:
+                  if x["name"].startswith("iPhone"):
+                      print(x["udid"]); raise SystemExit
+          raise SystemExit("No iPhone simulator available")
+          PY
+          )
+          echo "SIM_UDID=$UDID" >> "$GITHUB_ENV"
+          xcrun simctl boot "$UDID" || true
+          open -a Simulator
+          xcrun simctl bootstatus "$UDID" -b
+          APP=$(find build-ios/Build/Products/Release-iphonesimulator -maxdepth 1 -name "*.app" | head -1)
+          test -n "$APP"
+          xcrun simctl install "$UDID" "$APP"
+          xcrun simctl launch "$UDID" com.redpointchurch.app
+          sleep 20
+          xcrun simctl io "$UDID" screenshot home.png
+      - uses: actions/upload-artifact@v4
+        with:
+          name: red-point-52b1cc27-ios-simulator-home
+          path: home.png
