@@ -30,8 +30,8 @@
         "android.permission.RECORD_AUDIO"
       ],
       "adaptiveIcon": {
-        "foregroundImage": "./assets/app-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFF9F7"
       }
     },
     "web": {
@@ -63,11 +63,11 @@
       }
     },
     "owner": "red-point-church",
-    "icon": "./assets/app-icon.png",
+    "icon": "./assets/icon.png",
     "splash": {
-      "image": "./assets/app-icon.png",
+      "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#FFF9F7"
     }
   }
 }
