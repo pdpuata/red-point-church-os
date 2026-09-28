@@ -19,9 +19,15 @@ jobs:
         run: |
           mkdir -p assets
           curl -fL 'https://images.squarespace-cdn.com/content/v1/54f85181e4b01121d8c7c7ef/1508511433964-E2ZFVD5706VC17J3CXBL/RP+PP+2018+New.png?format=1500w' -o /tmp/redpoint-brand.webp
-          cp /tmp/redpoint-brand.webp assets/icon.png
-          cp /tmp/redpoint-brand.webp assets/adaptive-icon.png
-          cp /tmp/redpoint-brand.webp assets/splash-icon.png
+          if command -v magick >/dev/null; then
+            magick /tmp/redpoint-brand.webp assets/icon.png
+          elif command -v convert >/dev/null; then
+            convert /tmp/redpoint-brand.webp assets/icon.png
+          else
+            sips -s format png /tmp/redpoint-brand.webp --out assets/icon.png
+          fi
+          cp assets/icon.png assets/adaptive-icon.png
+          cp assets/icon.png assets/splash-icon.png
       - run: npx expo prebuild --platform android --clean --no-install
       - run: cd android && ./gradlew assembleDebug --no-daemon
       - name: Emulator launch and smoke test
