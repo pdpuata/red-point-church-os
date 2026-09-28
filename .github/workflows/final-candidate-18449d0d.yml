@@ -1,0 +1,45 @@
+name: Final candidate 18449d0d
+on:
+  push:
+    paths: [".github/workflows/final-candidate-18449d0d.yml"]
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    env:
+      EXPO_PUBLIC_SUPABASE_URL: https://gvyqluwtzujefernhvfd.supabase.co
+      EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_YnajoirMWnSwa_IOrBB2Tg_vEpy5ReX
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22, cache: npm}
+      - uses: actions/setup-java@v5
+        with: {distribution: temurin, java-version: 17}
+      - run: npm ci --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npx expo-doctor
+      - run: npm run preflight
+      - run: npm run release-check
+      - run: npm run check:production-config
+      - run: npx expo export --platform android
+      - run: npx expo prebuild --platform android --clean --no-install
+      - run: cd android && ./gradlew assembleDebug bundleRelease --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: red-point-18449d0d-android
+          path: |
+            android/app/build/outputs/apk/debug/app-debug.apk
+            android/app/build/outputs/bundle/release/app-release.aab
+  ios:
+    runs-on: macos-26
+    env:
+      EXPO_PUBLIC_SUPABASE_URL: https://gvyqluwtzujefernhvfd.supabase.co
+      EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_YnajoirMWnSwa_IOrBB2Tg_vEpy5ReX
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22, cache: npm}
+      - run: npm ci --no-audit --no-fund
+      - run: npx expo-doctor
+      - run: npx expo prebuild --platform ios --clean --no-install
+      - run: npx pod-install
+      - run: xcodebuild -workspace ios/RedPointChurch.xcworkspace -scheme RedPointChurch -configuration Release -sdk iphonesimulator -derivedDataPath build-ios CODE_SIGNING_ALLOWED=NO build
