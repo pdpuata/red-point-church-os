@@ -7,11 +7,28 @@
     "userInterfaceStyle": "light",
     "scheme": "redpointchurch",
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.redpointchurch.app"
+      "supportsTablet": false,
+      "bundleIdentifier": "com.redpointchurch.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
-      "package": "com.redpointchurch.app"
+      "package": "com.redpointchurch.app",
+      "permissions": [
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+      ],
+      "googleServicesFile": "./google-services.json",
+      "blockedPermissions": [
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro"
@@ -21,10 +38,26 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Red Point Church uses photo access so authorised church staff can add images to church content."
+          "photosPermission": "Red Point Church uses photo access so authorised church staff can add images to church content.",
+          "cameraPermission": false,
+          "microphonePermission": false
         }
-      ]
-    ]
-  },
-  "version": "17.0.0"
+      ],
+      [
+        "expo-audio",
+        {
+          "enableBackgroundPlayback": true,
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ],
+      "expo-asset"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "b2da1c96-1a1e-4fb8-a9a0-fa7c77d1465e"
+      }
+    },
+    "owner": "red-point-church"
+  }
 }
