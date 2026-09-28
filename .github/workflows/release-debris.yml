@@ -1,0 +1,19 @@
+name: Release debris scan
+on:
+  push:
+    paths: [".github/workflows/release-debris.yml"]
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Release-sensitive source scan
+        run: |
+          echo "=== localhost/dev URLs ==="
+          grep -RInE "localhost|127\.0\.0\.1|10\.0\.2\.2|ngrok|example\.com" --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=docs --exclude="*.md" . || true
+          echo "=== TODO/FIXME ==="
+          grep -RInE "TODO|FIXME|HACK|PLACEHOLDER" --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=docs --exclude="*.md" . || true
+          echo "=== possible secrets ==="
+          grep -RInE "SUPABASE_SERVICE_ROLE|RESEND_API_KEY|YOUTUBE_API_KEY|BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY|service_role" --exclude-dir=.git --exclude-dir=node_modules . || true
+          echo "=== music refs in church source/config ==="
+          grep -RIn "music" App.tsx app.json package.json src scripts 2>/dev/null || true
