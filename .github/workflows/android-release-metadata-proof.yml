@@ -1,0 +1,34 @@
+name: Android release metadata proof
+on:
+  push:
+    paths: [".github/workflows/android-release-metadata-proof.yml"]
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    env:
+      EXPO_PUBLIC_SUPABASE_URL: https://gvyqluwtzujefernhvfd.supabase.co
+      EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_YnajoirMWnSwa_IOrBB2Tg_vEpy5ReX
+    steps:
+      - uses: actions/checkout@v4
+      - name: Materialize exact GitLab binary assets
+        run: |
+          for f in assets/icon.png assets/adaptive-icon.png assets/app-icon.png assets/splash-icon.png; do base64 -d "$f" > "$f.bin" && mv "$f.bin" "$f"; done
+      - uses: actions/setup-node@v4
+        with: {node-version: 22, cache: npm}
+      - uses: actions/setup-java@v5
+        with: {distribution: temurin, java-version: 17}
+      - run: npm ci --no-audit --no-fund
+      - run: npx expo prebuild --platform android --clean --no-install
+      - name: Print release metadata
+        run: |
+          echo "=== gradle properties ==="
+          grep -RInE "applicationId|namespace|versionCode|versionName|minSdk|targetSdk|compileSdk|signingConfig" android/app/build.gradle android/build.gradle android/gradle.properties || true
+          echo "=== resolved properties ==="
+          cd android
+          ./gradlew :app:properties --no-daemon | grep -E "compileSdk|targetSdk|minSdk|versionCode|versionName|namespace" || true
+      - name: Build release bundle
+        run: cd android && ./gradlew bundleRelease --no-daemon
+      - name: Inspect bundle signing
+        run: |
+          keytool -printcert -jarfile android/app/build/outputs/bundle/release/app-release.aab || true
+          jarsigner -verify -verbose -certs android/app/build/outputs/bundle/release/app-release.aab | tail -80 || true
