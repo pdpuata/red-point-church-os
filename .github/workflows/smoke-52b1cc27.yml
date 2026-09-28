@@ -1,0 +1,45 @@
+name: Congregation web smoke 52b1cc27
+on:
+  push:
+    branches: [ "verify/52b1cc27" ]
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      EXPO_PUBLIC_SUPABASE_URL: https://gvyqluwtzujefernhvfd.supabase.co
+      EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_YnajoirMWnSwa_IOrBB2Tg_vEpy5ReX
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npx expo export --platform web
+      - run: npx playwright install chromium
+      - name: Exercise congregation navigation against production read data
+        shell: bash
+        run: |
+          python3 -m http.server 4173 -d dist >/tmp/redpoint-http.log 2>&1 &
+          node - <<'NODE'
+          const { chromium } = require('playwright');
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            const page=await browser.newPage({viewport:{width:390,height:844}});
+            const errors=[]; page.on('pageerror',e=>errors.push(String(e)));
+            await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
+            await page.getByText('Red Point Church',{exact:true}).first().waitFor();
+            await page.getByText('Events',{exact:true}).last().click();
+            await page.getByText('Kids Camp 2026',{exact:true}).waitFor();
+            await page.getByText('Sermons',{exact:true}).last().click();
+            await page.getByText('The Glory of God 2 20/09/2026',{exact:true}).waitFor();
+            await page.getByText('More',{exact:true}).last().click();
+            await page.getByText('Church information',{exact:true}).waitFor();
+            await page.getByText("I’m new",{exact:true}).click();
+            await page.getByText('Send to the church',{exact:true}).waitFor();
+            if(errors.length) throw new Error('page errors: '+errors.join(' | '));
+            console.log('PASS congregation smoke: Home -> Events -> Sermons -> More -> I’m new');
+            await browser.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
