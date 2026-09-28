@@ -1,0 +1,27 @@
+name: Production edge security probes v2
+on:
+  push:
+    paths: [".github/workflows/edge-security-probes-v2.yml"]
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Safe production endpoint probes with evidence
+        env:
+          BASE: https://gvyqluwtzujefernhvfd.supabase.co/functions/v1
+          KEY: sb_publishable_YnajoirMWnSwa_IOrBB2Tg_vEpy5ReX
+        run: |
+          set -u
+          cv=$(curl -sS -o /tmp/v -w '%{http_code}' -X POST "$BASE/submit-visitor" -H "apikey: $KEY" -H "Content-Type: application/json" -d '{}')
+          cr=$(curl -sS -o /tmp/r -w '%{http_code}' -X POST "$BASE/register-device" -H "apikey: $KEY" -H "Content-Type: application/json" -d '{"expoPushToken":"not-a-token","appId":"red-point-church"}')
+          cu=$(curl -sS -o /tmp/u -w '%{http_code}' -X POST "$BASE/send-push" -H "apikey: $KEY" -H "Content-Type: application/json" -d '{"title":"probe","body":"probe"}')
+          cp=$(curl -sS -o /tmp/p -w '%{http_code}' "$BASE/privacy-policy")
+          echo "submit-visitor=$cv body=$(cat /tmp/v)"
+          echo "register-device=$cr body=$(cat /tmp/r)"
+          echo "send-push-unauth=$cu body=$(cat /tmp/u)"
+          echo "privacy-policy=$cp"
+          test "$cv" = 400
+          test "$cr" = 400
+          test "$cu" = 401 -o "$cu" = 403
+          test "$cp" = 200
+          grep -qi "Red Point" /tmp/p
