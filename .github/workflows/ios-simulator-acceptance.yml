@@ -16,10 +16,8 @@ jobs:
       - name: Materialize branded assets for verification mirror
         run: |
           mkdir -p assets
-          test -f assets/app-icon.png
-          cp assets/app-icon.png assets/icon.png
-          cp assets/app-icon.png assets/adaptive-icon.png
-          cp assets/app-icon.png assets/splash-icon.png
+          for f in assets/icon.png assets/adaptive-icon.png assets/app-icon.png assets/splash-icon.png; do base64 -D -i "$f" -o "$f.bin" && mv "$f.bin" "$f"; done
+          file assets/*.png
       - run: npx expo prebuild --platform ios --clean --no-install
       - run: npx pod-install
       - name: Build simulator release
