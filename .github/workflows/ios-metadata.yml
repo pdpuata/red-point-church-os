@@ -1,0 +1,17 @@
+name: Inspect iOS release metadata
+on:
+  push:
+    paths: [".github/workflows/ios-metadata.yml"]
+jobs:
+  ios-metadata:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci --no-audit --no-fund
+      - run: xcodebuild -version
+      - run: xcrun --sdk iphoneos --show-sdk-version
+      - run: npx expo prebuild --platform ios --clean --no-install
+      - run: |
+          grep -RInE "PRODUCT_BUNDLE_IDENTIFIER|IPHONEOS_DEPLOYMENT_TARGET|CURRENT_PROJECT_VERSION|MARKETING_VERSION|UIBackgroundModes|CFBundleURLSchemes" ios | head -100 || true
