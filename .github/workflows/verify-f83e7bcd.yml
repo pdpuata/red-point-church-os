@@ -1,7 +1,7 @@
-name: Verify GitLab f83e7bcd
+name: Verify GitLab release candidate
 on:
   push:
-    branches: [ "verify/f83e7bcd" ]
+    branches: [ "verify/f83e7bcd", "verify/52b1cc27" ]
   workflow_dispatch:
 jobs:
   verify:
