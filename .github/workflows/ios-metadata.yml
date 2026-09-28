@@ -13,5 +13,11 @@ jobs:
       - run: xcodebuild -version
       - run: xcrun --sdk iphoneos --show-sdk-version
       - run: npx expo prebuild --platform ios --clean --no-install
-      - run: |
-          grep -RInE "PRODUCT_BUNDLE_IDENTIFIER|IPHONEOS_DEPLOYMENT_TARGET|CURRENT_PROJECT_VERSION|MARKETING_VERSION|UIBackgroundModes|CFBundleURLSchemes" ios | head -100 || true
+      - name: Generated iOS metadata
+        run: |
+          echo "=== Info.plist ==="
+          cat ios/RedPointChurch/Info.plist
+          echo "=== entitlements ==="
+          find ios -name "*.entitlements" -maxdepth 3 -print -exec cat {} \;
+          echo "=== project settings ==="
+          grep -RInE "PRODUCT_BUNDLE_IDENTIFIER|IPHONEOS_DEPLOYMENT_TARGET|CURRENT_PROJECT_VERSION|MARKETING_VERSION|CODE_SIGN|DEVELOPMENT_TEAM" ios/RedPointChurch.xcodeproj/project.pbxproj || true
