@@ -29,7 +29,7 @@ jobs:
             const page=await browser.newPage({viewport:{width:390,height:844}});
             const errors=[]; page.on('pageerror',e=>errors.push(String(e)));
             await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
-            await page.getByText('Red Point Church',{exact:true}).first().waitFor();
+            await page.getByText('RED POINT CHURCH',{exact:true}).first().waitFor();
             await page.getByText('Events',{exact:true}).last().click();
             await page.getByText('Kids Camp 2026',{exact:true}).waitFor();
             await page.getByText('Sermons',{exact:true}).last().click();
