@@ -22,6 +22,7 @@ jobs:
           file assets/icon.png | grep -q 'PNG image data'
           cp assets/icon.png assets/adaptive-icon.png
           cp assets/icon.png assets/splash-icon.png
+          cp assets/icon.png assets/app-icon.png
       - run: npx expo prebuild --platform android --clean --no-install
       - run: cd android && ./gradlew assembleDebug --no-daemon
       - name: Emulator launch and smoke test
