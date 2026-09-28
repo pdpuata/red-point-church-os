@@ -1,0 +1,20 @@
+name: Android merged manifest fast proof
+on:
+  push:
+    paths: [".github/workflows/android-merged-manifest-fast.yml"]
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Materialize exact GitLab binary assets
+        run: for f in assets/icon.png assets/adaptive-icon.png assets/app-icon.png assets/splash-icon.png; do base64 -d "$f" > "$f.bin" && mv "$f.bin" "$f"; done
+      - uses: actions/setup-node@v4
+        with: {node-version: 22, cache: npm}
+      - run: npm ci --no-audit --no-fund
+      - run: npx expo prebuild --platform android --clean --no-install
+      - run: |
+          echo "Expo SDK package versions:"
+          node -e "const p=require('./package.json'); console.log({expo:p.dependencies.expo,reactNative:p.dependencies['react-native']})"
+          echo "Expo Android defaults:"
+          grep -RInE "compileSdkVersion|targetSdkVersion|minSdkVersion" node_modules/expo node_modules/@expo 2>/dev/null | grep -E "36|24|compileSdkVersion|targetSdkVersion" | head -80
