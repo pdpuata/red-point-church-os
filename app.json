@@ -28,7 +28,11 @@
         "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
-      ]
+      ],
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFF9F7"
+      }
     },
     "web": {
       "bundler": "metro"
@@ -58,6 +62,7 @@
         "projectId": "b2da1c96-1a1e-4fb8-a9a0-fa7c77d1465e"
       }
     },
-    "owner": "red-point-church"
+    "owner": "red-point-church",
+    "icon": "./assets/icon.png"
   }
 }
