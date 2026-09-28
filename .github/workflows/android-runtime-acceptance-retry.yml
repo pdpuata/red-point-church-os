@@ -1,0 +1,47 @@
+name: Android runtime acceptance retry
+on:
+  push:
+    paths: [".github/workflows/android-runtime-acceptance-retry.yml"]
+jobs:
+  runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Materialize exact GitLab binary assets
+        run: for f in assets/icon.png assets/adaptive-icon.png assets/app-icon.png assets/splash-icon.png; do base64 -d "$f" > "$f.bin" && mv "$f.bin" "$f"; done
+      - uses: actions/setup-node@v4
+        with: {node-version: 22, cache: npm}
+      - uses: actions/setup-java@v5
+        with: {distribution: temurin, java-version: 17}
+      - run: npm ci --no-audit --no-fund
+      - run: npx expo prebuild --platform android --clean --no-install
+      - run: cd android && ./gradlew assembleRelease --no-daemon
+      - name: Emulator launch, deep-link and crash smoke
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -gpu swiftshader_indirect -memory 4096
+          script: |
+            adb wait-for-device
+            until [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" = "1" ]; do sleep 5; done
+            adb install --no-streaming -r android/app/build/outputs/apk/release/app-release.apk
+            adb logcat -c
+            adb shell monkey -p com.redpointchurch.app -c android.intent.category.LAUNCHER 1
+            sleep 12
+            adb shell pidof com.redpointchurch.app
+            adb exec-out screencap -p > /tmp/red-point-home.png
+            adb shell am start -W -a android.intent.action.VIEW -d "redpointchurch://sermons" com.redpointchurch.app
+            sleep 6
+            adb shell pidof com.redpointchurch.app
+            adb exec-out screencap -p > /tmp/red-point-deeplink.png
+            if adb logcat -d | grep -E "FATAL EXCEPTION|AndroidRuntime.*FATAL" | grep -q "com.redpointchurch.app"; then adb logcat -d; exit 1; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: red-point-808a7e9e-android-runtime-evidence
+          path: /tmp/red-point-*.png
+          if-no-files-found: warn
