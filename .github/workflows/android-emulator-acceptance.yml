@@ -1,0 +1,38 @@
+name: Android emulator acceptance
+on:
+  push:
+    paths: [".github/workflows/android-emulator-acceptance.yml"]
+jobs:
+  emulator:
+    runs-on: ubuntu-latest
+    env:
+      EXPO_PUBLIC_SUPABASE_URL: https://gvyqluwtzujefernhvfd.supabase.co
+      EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_YnajoirMWnSwa_IOrBB2Tg_vEpy5ReX
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22, cache: npm}
+      - uses: actions/setup-java@v5
+        with: {distribution: temurin, java-version: 17}
+      - run: npm ci --no-audit --no-fund
+      - run: npx expo prebuild --platform android --clean --no-install
+      - run: cd android && ./gradlew assembleDebug --no-daemon
+      - name: Emulator launch and smoke test
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          script: |
+            adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+            adb shell am force-stop com.redpointchurch.app
+            adb shell monkey -p com.redpointchurch.app -c android.intent.category.LAUNCHER 1
+            sleep 20
+            adb shell pidof com.redpointchurch.app
+            adb exec-out screencap -p > android-home.png
+            adb logcat -d -t 500 | grep -E "FATAL EXCEPTION|AndroidRuntime.*FATAL|ReactNativeJS.*Error" && exit 1 || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: red-point-52b1cc27-android-emulator-home
+          path: android-home.png
