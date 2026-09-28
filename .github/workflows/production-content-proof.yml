@@ -1,0 +1,36 @@
+name: Production content release proof
+on:
+  push:
+    paths: [".github/workflows/production-content-proof.yml"]
+jobs:
+  proof:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify production public content and privacy endpoints
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://gvyqluwtzujefernhvfd.supabase.co"
+          key="sb_publishable_S1kWgxFYHHEd59Z9JeYATw_WdiQ5pLh"
+          hdr=(-H "apikey: $key" -H "Authorization: Bearer $key")
+          curl -fsS "${base}/rest/v1/events?select=id,title,start_at,end_at,location,published&published=eq.true&order=start_at.asc&limit=10" "${hdr[@]}" > /tmp/events.json
+          curl -fsS "${base}/rest/v1/announcements?select=id,title,body,published_at,expires_at,published&published=eq.true&order=published_at.desc&limit=10" "${hdr[@]}" > /tmp/announcements.json
+          curl -fsS "${base}/rest/v1/sermons?select=id,title,preacher,preached_at,audio_url,youtube_url,published&published=eq.true&order=preached_at.desc&limit=5" "${hdr[@]}" > /tmp/sermons.json
+          curl -fsS "${base}/rest/v1/leaders?select=id,name,role,published&published=eq.true&order=name.asc" "${hdr[@]}" > /tmp/leaders.json
+          curl -fsS "${base}/functions/v1/privacy-policy" > /tmp/privacy.html
+          node <<'NODE'
+          const fs=require('fs');
+          const now=Date.now();
+          const read=f=>JSON.parse(fs.readFileSync(f,'utf8'));
+          const ev=read('/tmp/events.json'), an=read('/tmp/announcements.json'), se=read('/tmp/sermons.json'), le=read('/tmp/leaders.json');
+          const upcoming=ev.filter(x=>new Date(x.end_at||x.start_at).getTime()>=now);
+          const current=an.filter(x=>!x.expires_at||new Date(x.expires_at).getTime()>=now);
+          const playable=se.filter(x=>x.audio_url||x.youtube_url);
+          console.log(JSON.stringify({upcomingEvents:upcoming.map(x=>({title:x.title,start_at:x.start_at,location:x.location})),currentAnnouncements:current.map(x=>({title:x.title,published_at:x.published_at,expires_at:x.expires_at})),latestSermons:se.map(x=>({title:x.title,preacher:x.preacher,preached_at:x.preached_at,playable:!!(x.audio_url||x.youtube_url)})),publishedLeaders:le.length},null,2));
+          if(!upcoming.length) throw new Error('No current/upcoming published event');
+          if(!current.length) throw new Error('No current published announcement');
+          if(!se.length||!playable.length) throw new Error('No playable published sermon');
+          if(!le.length) throw new Error('No published leaders');
+          const privacy=fs.readFileSync('/tmp/privacy.html','utf8');
+          if(privacy.length<200) throw new Error('Privacy policy response unexpectedly empty');
+          NODE
