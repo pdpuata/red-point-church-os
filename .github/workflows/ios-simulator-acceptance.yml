@@ -20,6 +20,7 @@ jobs:
           file assets/icon.png | grep -q 'PNG image data'
           cp assets/icon.png assets/adaptive-icon.png
           cp assets/icon.png assets/splash-icon.png
+          cp assets/icon.png assets/app-icon.png
       - run: npx expo prebuild --platform ios --clean --no-install
       - run: npx pod-install
       - name: Build simulator release
