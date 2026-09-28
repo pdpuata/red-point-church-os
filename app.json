@@ -63,11 +63,6 @@
       }
     },
     "owner": "red-point-church",
-    "icon": "./assets/icon.png",
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#FFF9F7"
-    }
+    "icon": "./assets/icon.png"
   }
 }
