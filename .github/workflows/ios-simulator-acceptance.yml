@@ -16,14 +16,8 @@ jobs:
       - name: Materialize branded assets for verification mirror
         run: |
           mkdir -p assets
-          curl -fL 'https://images.squarespace-cdn.com/content/v1/54f85181e4b01121d8c7c7ef/1508511433964-E2ZFVD5706VC17J3CXBL/RP+PP+2018+New.png?format=1500w' -o /tmp/redpoint-brand.webp
-          if command -v magick >/dev/null; then
-            magick /tmp/redpoint-brand.webp assets/icon.png
-          elif command -v convert >/dev/null; then
-            convert /tmp/redpoint-brand.webp assets/icon.png
-          else
-            sips -s format png /tmp/redpoint-brand.webp --out assets/icon.png
-          fi
+          curl -fL -H 'Accept: image/png' 'https://images.squarespace-cdn.com/content/v1/54f85181e4b01121d8c7c7ef/1508511433964-E2ZFVD5706VC17J3CXBL/RP+PP+2018+New.png' -o assets/icon.png
+          file assets/icon.png | grep -q 'PNG image data'
           cp assets/icon.png assets/adaptive-icon.png
           cp assets/icon.png assets/splash-icon.png
       - run: npx expo prebuild --platform ios --clean --no-install
