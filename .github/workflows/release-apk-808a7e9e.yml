@@ -1,0 +1,25 @@
+name: Standalone release APK 808a7e9e
+on:
+  push:
+    paths: [".github/workflows/release-apk-808a7e9e.yml"]
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    env:
+      EXPO_PUBLIC_SUPABASE_URL: https://gvyqluwtzujefernhvfd.supabase.co
+      EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_YnajoirMWnSwa_IOrBB2Tg_vEpy5ReX
+    steps:
+      - uses: actions/checkout@v4
+      - name: Materialize exact GitLab binary assets
+        run: for f in assets/icon.png assets/adaptive-icon.png assets/app-icon.png assets/splash-icon.png; do base64 -d "$f" > "$f.bin" && mv "$f.bin" "$f"; done
+      - uses: actions/setup-node@v4
+        with: {node-version: 22, cache: npm}
+      - uses: actions/setup-java@v5
+        with: {distribution: temurin, java-version: 17}
+      - run: npm ci --no-audit --no-fund
+      - run: npx expo prebuild --platform android --clean --no-install
+      - run: cd android && ./gradlew assembleRelease --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: red-point-808a7e9e-standalone-release-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
