@@ -1,0 +1,46 @@
+name: Android store screenshots
+on:
+  push:
+    paths: [".github/workflows/android-store-screenshots.yml"]
+jobs:
+  screenshots:
+    runs-on: ubuntu-latest
+    env:
+      EXPO_PUBLIC_SUPABASE_URL: https://gvyqluwtzujefernhvfd.supabase.co
+      EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_YnajoirMWnSwa_IOrBB2Tg_vEpy5ReX
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22, cache: npm}
+      - uses: actions/setup-java@v5
+        with: {distribution: temurin, java-version: 17}
+      - run: npm ci --no-audit --no-fund
+      - name: Materialize exact GitLab binary assets
+        run: for f in assets/icon.png assets/adaptive-icon.png assets/app-icon.png assets/splash-icon.png; do base64 -d "$f" > "$f.bin" && mv "$f.bin" "$f"; done
+      - run: npx expo prebuild --platform android --clean --no-install
+      - run: cd android && ./gradlew assembleRelease --no-daemon
+      - name: Capture exact-app phone screenshots
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          script: |
+            adb install -r android/app/build/outputs/apk/release/app-release.apk
+            adb shell monkey -p com.redpointchurch.app -c android.intent.category.LAUNCHER 1
+            sleep 15
+            adb exec-out screencap -p > store-assets/android-home.png
+            size=$(adb shell wm size | tail -1 | tr -dc '0-9x')
+            W=${size%x*}; H=${size#*x}
+            adb shell input tap $((W*5/8)) $((H*94/100))
+            sleep 5
+            adb exec-out screencap -p > store-assets/android-sermons.png
+            adb shell pidof com.redpointchurch.app
+            adb logcat -d -t 400 | grep -E "FATAL EXCEPTION|AndroidRuntime.*FATAL|ReactNativeJS.*Error" && exit 1 || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: red-point-android-store-screenshots
+          path: |
+            store-assets/android-home.png
+            store-assets/android-sermons.png
