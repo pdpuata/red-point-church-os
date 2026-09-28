@@ -18,6 +18,13 @@ jobs:
           distribution: temurin
           java-version: "17"
       - run: npm ci --no-audit --no-fund
+      - name: Materialize branded assets for verification mirror
+        run: |
+          mkdir -p assets
+          curl -fL 'https://images.squarespace-cdn.com/content/v1/54f85181e4b01121d8c7c7ef/1508511433964-E2ZFVD5706VC17J3CXBL/RP+PP+2018+New.png?format=1500w' -o /tmp/redpoint-brand.webp
+          cp /tmp/redpoint-brand.webp assets/icon.png
+          cp /tmp/redpoint-brand.webp assets/adaptive-icon.png
+          cp /tmp/redpoint-brand.webp assets/splash-icon.png
       - run: npm run typecheck
       - run: npx expo-doctor
       - run: npx expo export --platform web
@@ -45,6 +52,13 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --no-audit --no-fund
+      - name: Materialize branded assets for verification mirror
+        run: |
+          mkdir -p assets
+          curl -fL 'https://images.squarespace-cdn.com/content/v1/54f85181e4b01121d8c7c7ef/1508511433964-E2ZFVD5706VC17J3CXBL/RP+PP+2018+New.png?format=1500w' -o /tmp/redpoint-brand.webp
+          cp /tmp/redpoint-brand.webp assets/icon.png
+          cp /tmp/redpoint-brand.webp assets/adaptive-icon.png
+          cp /tmp/redpoint-brand.webp assets/splash-icon.png
       - run: npx expo prebuild --platform ios --clean --no-install
       - run: npx pod-install
       - name: Compile iOS Release for simulator without signing
