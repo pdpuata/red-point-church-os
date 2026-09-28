@@ -1,0 +1,14 @@
+name: Runtime resilience static audit
+on:
+  push:
+    paths: [".github/workflows/runtime-resilience.yml"]
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract release resilience markers
+        run: |
+          grep -nE "try \{|catch \(|Alert\.alert|RefreshControl|loading|empty|No .*yet|Could not|Unable|failed|Linking\.openURL|canOpenURL|onError|error" App.tsx | head -250 || true
+          echo "=== accessibility ==="
+          grep -nE "accessibility(Label|Role|Hint|State|Value|Actions)|accessible=|allowFontScaling|maxFontSizeMultiplier|adjustsFontSizeToFit|minHeight|minWidth" App.tsx | head -300 || true
