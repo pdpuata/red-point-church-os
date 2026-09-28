@@ -1,0 +1,40 @@
+name: Verify GitLab f83e7bcd
+on:
+  push:
+    branches: [ "verify/f83e7bcd" ]
+  workflow_dispatch:
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - run: npm ci --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npx expo-doctor
+      - run: npm run preflight
+      - run: npm run release-check
+      - run: node scripts/production-config-check.mjs
+      - run: npx expo export --platform web
+      - run: npx expo export --platform android
+      - run: npx expo prebuild --platform android --clean --no-install
+      - name: Build Android debug APK
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+      - name: Build Android release AAB
+        working-directory: android
+        run: ./gradlew bundleRelease --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: red-point-f83e7bcd-android
+          path: |
+            android/app/build/outputs/apk/debug/*.apk
+            android/app/build/outputs/bundle/release/*.aab
