@@ -1,0 +1,19 @@
+name: Production edge security probes
+on:
+  push:
+    paths: [".github/workflows/edge-security-probes.yml"]
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Safe production endpoint probes
+        env:
+          BASE: https://gvyqluwtzujefernhvfd.supabase.co/functions/v1
+          KEY: sb_publishable_YnajoirMWnSwa_IOrBB2Tg_vEpy5ReX
+        run: |
+          set -euo pipefail
+          code=$(curl -sS -o /tmp/v -w '%{http_code}' -X POST "$BASE/submit-visitor" -H "apikey: $KEY" -H "Content-Type: application/json" -d '{}'); test "$code" = 400
+          code=$(curl -sS -o /tmp/r -w '%{http_code}' -X POST "$BASE/register-device" -H "apikey: $KEY" -H "Content-Type: application/json" -d '{"expoPushToken":"not-a-token","appId":"red-point-church"}'); test "$code" = 400
+          code=$(curl -sS -o /tmp/u -w '%{http_code}' -X POST "$BASE/send-push" -H "apikey: $KEY" -H "Content-Type: application/json" -d '{"title":"probe","body":"probe"}'); test "$code" = 401
+          code=$(curl -sS -o /tmp/p -w '%{http_code}' "$BASE/privacy-policy"); test "$code" = 200
+          grep -qi "Red Point" /tmp/p
