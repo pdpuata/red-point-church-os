@@ -1,0 +1,36 @@
+name: iOS store screenshot Johannesburg
+on:
+  push:
+    paths: [".github/workflows/ios-store-screenshot-jhb.yml"]
+jobs:
+  shot:
+    runs-on: macos-26
+    env:
+      EXPO_PUBLIC_SUPABASE_URL: https://gvyqluwtzujefernhvfd.supabase.co
+      EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_YnajoirMWnSwa_IOrBB2Tg_vEpy5ReX
+    steps:
+      - uses: actions/checkout@v4
+      - name: Materialize exact GitLab binary assets
+        run: for f in assets/icon.png assets/adaptive-icon.png assets/app-icon.png assets/splash-icon.png; do base64 -D -i "$f" -o "$f.bin" && mv "$f.bin" "$f"; done
+      - uses: actions/setup-node@v4
+        with: {node-version: 22, cache: npm}
+      - run: npm ci --no-audit --no-fund
+      - run: npx expo prebuild --platform ios --clean --no-install
+      - run: npx pod-install
+      - run: xcodebuild -workspace ios/RedPointChurch.xcworkspace -scheme RedPointChurch -configuration Release -sdk iphonesimulator -derivedDataPath build-ios CODE_SIGNING_ALLOWED=NO build
+      - name: Boot and capture Johannesburg-local Home
+        run: |
+          DEVICE=$(xcrun simctl list devices available | grep -m1 "iPhone 16 Pro (" | sed -E 's/.*\(([0-9A-F-]+)\).*/\1/')
+          xcrun simctl boot "$DEVICE" || true
+          open -a Simulator
+          xcrun simctl bootstatus "$DEVICE" -b
+          xcrun simctl spawn "$DEVICE" launchctl setenv TZ Africa/Johannesburg
+          APP=$(find build-ios/Build/Products/Release-iphonesimulator -maxdepth 1 -name "*.app" | head -1)
+          xcrun simctl install "$DEVICE" "$APP"
+          xcrun simctl launch "$DEVICE" com.redpointchurch.app
+          sleep 15
+          xcrun simctl io "$DEVICE" screenshot ios-home-johannesburg.png
+      - uses: actions/upload-artifact@v4
+        with:
+          name: red-point-ios-home-johannesburg
+          path: ios-home-johannesburg.png
