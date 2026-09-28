@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1003104246213",
+    "project_id": "red-point-church",
+    "storage_bucket": "red-point-church.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1003104246213:android:333ebf3920956acbe593ac",
+        "android_client_info": {
+          "package_name": "com.redpointchurch.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDSyiBOo9wyLOvtj3sbUZcLWgmxEPq2G10"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
