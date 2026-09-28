@@ -1,0 +1,22 @@
+name: Inspect native release metadata
+on:
+  workflow_dispatch:
+  push:
+    paths: [".github/workflows/native-metadata.yml"]
+jobs:
+  android-metadata:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci --no-audit --no-fund
+      - run: npx expo prebuild --platform android --clean --no-install
+      - name: Release metadata
+        run: |
+          echo "=== android/gradle.properties ==="
+          cat android/gradle.properties
+          echo "=== app build.gradle identifiers ==="
+          grep -nE "namespace|applicationId|minSdk|targetSdk|compileSdk|versionCode|versionName|signingConfig" android/app/build.gradle || true
+          echo "=== root build.gradle SDK refs ==="
+          grep -RInE "targetSdk|compileSdk|minSdk" android/build.gradle android/gradle.properties android/app/build.gradle || true
