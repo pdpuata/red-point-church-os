@@ -1,0 +1,33 @@
+name: Store compatibility proof
+on:
+  push:
+    paths: [".github/workflows/store-compatibility.yml"]
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22, cache: npm}
+      - uses: actions/setup-java@v5
+        with: {distribution: temurin, java-version: 17}
+      - run: npm ci --no-audit --no-fund
+      - run: npx expo prebuild --platform android --clean --no-install
+      - name: Resolve Android SDK and package metadata
+        run: |
+          ./android/gradlew -p android :app:properties | grep -E "compileSdk|targetSdk|minSdk|versionCode|versionName" || true
+          grep -nE "applicationId|versionCode|versionName|signingConfig" android/app/build.gradle
+  ios:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22, cache: npm}
+      - run: npm ci --no-audit --no-fund
+      - run: xcodebuild -version
+      - run: xcrun --sdk iphoneos --show-sdk-version
+      - run: npx expo prebuild --platform ios --clean --no-install
+      - name: Resolve iOS build settings
+        run: |
+          cd ios
+          xcodebuild -workspace RedPointChurch.xcworkspace -scheme RedPointChurch -configuration Release -showBuildSettings | grep -E "PRODUCT_BUNDLE_IDENTIFIER|IPHONEOS_DEPLOYMENT_TARGET|CURRENT_PROJECT_VERSION|MARKETING_VERSION|SDK_VERSION|PRODUCT_NAME" | head -80
