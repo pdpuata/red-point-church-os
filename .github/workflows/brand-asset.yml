@@ -1,0 +1,18 @@
+name: Inspect existing church brand asset
+on:
+  push:
+    paths: [".github/workflows/brand-asset.yml"]
+jobs:
+  asset:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch production church image
+        run: |
+          curl -fL 'https://images.squarespace-cdn.com/content/v1/54f85181e4b01121d8c7c7ef/1508511433964-E2ZFVD5706VC17J3CXBL/RP+PP+2018+New.png?format=1500w' -o redpoint-production-brand.png
+          file redpoint-production-brand.png
+          sha256sum redpoint-production-brand.png
+      - uses: actions/upload-artifact@v4
+        with:
+          name: redpoint-existing-production-brand
+          path: redpoint-production-brand.png
