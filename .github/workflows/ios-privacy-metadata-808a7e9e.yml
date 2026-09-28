@@ -1,0 +1,22 @@
+name: iOS privacy and background metadata
+on:
+  push:
+    paths: [".github/workflows/ios-privacy-metadata-808a7e9e.yml"]
+jobs:
+  inspect:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Materialize exact GitLab binary assets
+        run: for f in assets/icon.png assets/adaptive-icon.png assets/app-icon.png assets/splash-icon.png; do base64 -D -i "$f" -o "$f.bin" && mv "$f.bin" "$f"; done
+      - uses: actions/setup-node@v4
+        with: {node-version: 22, cache: npm}
+      - run: npm ci --no-audit --no-fund
+      - run: npx expo prebuild --platform ios --clean --no-install
+      - run: npx pod-install
+      - name: Native release metadata
+        run: |
+          echo "=== Background modes and URL schemes ==="
+          grep -RInE "UIBackgroundModes|audio|remote-notification|CFBundleURLSchemes|redpointchurch" ios/RedPointChurch/Info.plist ios/RedPointChurch.xcodeproj/project.pbxproj || true
+          echo "=== Privacy manifests ==="
+          find ios node_modules -name "PrivacyInfo.xcprivacy" -print | head -100
